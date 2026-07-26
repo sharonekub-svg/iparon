@@ -1,4 +1,4 @@
-import { demoMaterials } from './demoMaterials';
+import { demoMaterials, demoStudySet } from './demoMaterials';
 import { env } from '@/src/config/env';
 import { fetchMaterial, fetchMaterials, isConfigured, type MaterialDetail } from '@/src/lib/api';
 import type { MaterialSummary } from '@/src/types/material';
@@ -31,7 +31,14 @@ export async function listMaterials(): Promise<MaterialSummary[]> {
 export async function getMaterial(id: string): Promise<MaterialDetail | null> {
   if (!isConfigured()) {
     const local = localMaterials().find((material) => material.id === id);
-    return local ? { ...local, studySet: null, error: null } : null;
+    if (!local) {
+      return null;
+    }
+    return {
+      ...local,
+      studySet: local.status === 'ready' ? demoStudySet : null,
+      error: null,
+    };
   }
 
   return fetchMaterial(id);

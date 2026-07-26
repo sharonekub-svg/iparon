@@ -17,10 +17,14 @@
 - Edge Function `analyze`: שולחת את הקובץ למודל ראייה ומחזירה את ה-JSON
 - Edge Function `materials`: רשימת החומרים וחומר בודד
 - תקרה חודשית על ההוצאה, נבדקת לפני כל קריאה למודל
+- מסך תוצאה עם שלושה טאבים: סיכום, כרטיסיות, קוויז
+- כרטיסיות: החלקה ימינה־שמאלה, הקשה להפיכה
+- קוויז: שאלה אחת במסך, משוב מיד, ניקוד בסוף
 - אתר נחיתה סטטי ב-`site/`, מוכן לוורסל
 
-**מה עוד לא קיים:** מסך התוצאה, מסך הכרטיסיות ומסך הקוויז (שלב 5). לחיצה על
-חומר ברשימה עוד לא פותחת כלום.
+**מה עוד לא קיים:** פריסה בפועל — אין פרויקט Supabase, ולכן ההעלאה עוד לא
+עבדה מקצה לקצה. `EXPO_PUBLIC_SEED_DEMO=1` מריץ את כל המסכים על חומר לדוגמה
+בלי שרת.
 
 ## הרצה
 
@@ -68,6 +72,7 @@ app/                  מסכים (expo-router)
   _layout.tsx         RTL, טעינת פונטים, safe area, Stack
   index.tsx           בית — רשימת החומרים
   upload.tsx          העלאה — צילום או קובץ
+  material/[id].tsx   תוצאה — סיכום / כרטיסיות / קוויז
 design/               קובץ העיצוב — המקור למערכת העיצוב
 site/                 אתר הנחיתה הסטטי (Vercel)
 supabase/
@@ -77,7 +82,7 @@ supabase/
   functions/_shared   פרומפט, סכימה, DB, תקרה
 src/
   components/         Screen, AppText, Rule, Chevron, Grain, PrimaryButton,
-                      MaterialRow, EmptyState
+                      MaterialRow, EmptyState, TabBar, Flashcards, Quiz
   config/env.ts       משתני סביבה ציבוריים + אכיפת כלל ברזל 1
   data/materials.ts   שכבת נתונים — Supabase, עם מצב מקומי לפיתוח
   lib/                api, device, rtl, פורמט תאריכים
@@ -120,7 +125,7 @@ scripts/              generate-grain.mjs — מייצר את assets/grain.png
 
 | # | מה |
 |---|---|
-| 5 | מסך תוצאה עם טאבים, מסך כרטיסיות, מסך קוויז |
+| — | לפנות מקום ב-Supabase, לפרוס, ולבדוק העלאה אמיתית מקצה לקצה |
 | 6 | חיבור `site/` לוורסל + רשימת המתנה אמיתית |
 | 7 | אייקון, TestFlight |
 

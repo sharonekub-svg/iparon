@@ -58,10 +58,12 @@ export default function HomeScreen() {
   const isLoading = materials === null;
   const items = materials ?? [];
 
-  const openMaterial = useCallback((material: MaterialSummary) => {
-    // מסך התוצאה נבנה בשלב הבא.
-    void material;
-  }, []);
+  const openMaterial = useCallback(
+    (material: MaterialSummary) => {
+      router.push(`/material/${material.id}`);
+    },
+    [router],
+  );
 
   return (
     <Screen>
