@@ -17,6 +17,13 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 160
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "כדי לצלם דף מהמחברת, שינון צריך גישה למצלמה.",
+          "photosPermission": "כדי להעלות תמונה של סיכום, שינון צריך גישה לתמונות."
+        }
       ]
     ],
     "ios": {

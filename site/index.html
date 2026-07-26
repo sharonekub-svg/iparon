@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שינון — כל החומר שלך, מוכן למבחן</title>
+<meta name="description" content="מעלים דף, ויוצא סיכום, כרטיסיות וקוויז. מהחומר שלך, לא מהאינטרנט.">
+<meta name="theme-color" content="#FAFAF9">
+<meta property="og:title" content="שינון — כל החומר שלך, מוכן למבחן">
+<meta property="og:description" content="מצלמים דף מהמחברת או מעלים קובץ. שינון מסביר, מסכם ובונה תרגול — מהחומר שלכם.">
+<meta property="og:locale" content="he_IL">
+<meta property="og:type" content="website">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- HERO -->
+<section class="section hero">
+  <p class="wordmark">שינון</p>
+  <h1>מעלים דף.<br>יוצא סיכום, כרטיסיות וקוויז.</h1>
+  <p class="lead">מצלמים דף מהמחברת או מעלים קובץ. שינון מסביר, מסכם ובונה תרגול — מהחומר שלכם, לא מהאינטרנט.</p>
+  <p class="mono-note">כל החומר שלך, מוכן למבחן.</p>
+
+  <div class="form-wrap">
+    <form class="waitlist" data-waitlist novalidate>
+      <label class="sr-only" for="hero-email">האימייל שלך</label>
+      <input id="hero-email" type="email" name="email" required placeholder="האימייל שלך" autocomplete="email">
+      <button type="submit">הצטרפו לרשימת ההמתנה</button>
+    </form>
+    <p class="waitlist-done" data-waitlist-done hidden>נרשמת. נעדכן אותך כשנפתח.</p>
+    <p class="waitlist-error" data-waitlist-error hidden>הכתובת לא נראית תקינה. אפשר לבדוק שוב?</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- DEMO -->
+<section class="section">
+  <p class="section-number">01</p>
+  <h2>ככה זה עובד</h2>
+
+  <div class="demo" aria-hidden="true">
+    <div class="dropzone">
+      <div class="dropzone-square"></div>
+      <span>גוררים דף לכאן</span>
+    </div>
+
+    <div class="demo-file">
+      <div class="demo-file-lines">
+        <i style="width:70%"></i><i style="width:90%"></i><i style="width:55%"></i><i style="width:80%"></i>
+      </div>
+    </div>
+
+    <div class="demo-track"><div class="demo-bar"></div></div>
+
+    <div class="demo-results">
+      <div class="demo-card demo-card-1">
+        <p class="demo-card-label">סיכום</p>
+        <p class="demo-card-text">מערכת העצבים המרכזית וההיקפית. הנוירון כיחידת בסיס.</p>
+      </div>
+      <div class="demo-card demo-card-2">
+        <p class="demo-card-label">כרטיסייה</p>
+        <p class="demo-card-text">מהי יחידת הבסיס של מערכת העצבים?</p>
+      </div>
+      <div class="demo-card demo-card-3">
+        <p class="demo-card-label">קוויז</p>
+        <p class="demo-card-text">איזה חלק מעביר את האות אל התא הבא?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- THREE STEPS -->
+<section class="section">
+  <p class="section-number">02</p>
+  <h2>שלושה שלבים</h2>
+  <ol class="steps">
+    <li>
+      <span class="step-number">01</span>
+      <div>
+        <h3>העלה כל חומר</h3>
+        <p>PDF, תמונה, או צילום של דף מהמחברת. שינון קורא הכול, כולל כתב יד.</p>
+      </div>
+    </li>
+    <li>
+      <span class="step-number">02</span>
+      <div>
+        <h3>קבל כרטיסיות</h3>
+        <p>המערכת מזהה את המושגים החשובים ובונה מהם סיכום וכרטיסיות לחזרה.</p>
+      </div>
+    </li>
+    <li>
+      <span class="step-number">03</span>
+      <div>
+        <h3>תרגל עד שנכנס</h3>
+        <p>קוויז קצר על החומר, עם משוב מיידי, עד שהתשובות בטוחות.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- LIVE FLASHCARD + QUIZ -->
+<section class="section">
+  <p class="section-number">03</p>
+  <h2>ככה זה נראה בפועל</h2>
+  <p class="sub">דוגמה מביולוגיה, מערכת העצבים.</p>
+
+  <div class="widget-head">
+    <span class="widget-title">כרטיסייה</span>
+    <span class="widget-pos" data-card-pos>1/4</span>
+  </div>
+  <button type="button" class="card" data-card>
+    <span data-card-text>מהי יחידת הבסיס של מערכת העצבים?</span>
+  </button>
+  <div class="card-actions">
+    <button type="button" class="btn-ghost" data-card-flip>הצג תשובה</button>
+    <button type="button" class="btn-solid" data-card-next>הכרטיסייה הבאה</button>
+  </div>
+
+  <div class="widget-head">
+    <span class="widget-title">קוויז</span>
+    <span class="widget-pos" data-quiz-pos>1/3</span>
+  </div>
+
+  <div class="quiz" data-quiz>
+    <p class="quiz-question" data-quiz-question></p>
+    <div class="quiz-options" data-quiz-options></div>
+    <div class="quiz-next-wrap" data-quiz-next-wrap hidden>
+      <button type="button" class="btn-solid" data-quiz-next>השאלה הבאה</button>
+    </div>
+  </div>
+
+  <div class="quiz-done" data-quiz-done hidden>
+    <p class="quiz-done-label">התוצאה שלך</p>
+    <p class="quiz-score" data-quiz-score></p>
+    <button type="button" class="btn-ghost" data-quiz-restart>התחל שוב</button>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- FAQ -->
+<section class="section">
+  <p class="section-number">04</p>
+  <h2>שאלות נפוצות</h2>
+  <div class="faq" data-faq></div>
+</section>
+
+<hr class="rule">
+
+<!-- FINAL CTA -->
+<section class="section cta">
+  <h2 class="cta-title">כל החומר שלך,<br>מוכן למבחן.</h2>
+  <p class="lead cta-lead">שינון עדיין לא פתוח לכולם. הצטרפו לרשימת ההמתנה ותקבלו הזמנה כשנפתח.</p>
+
+  <div class="form-wrap">
+    <form class="waitlist" data-waitlist novalidate>
+      <label class="sr-only" for="final-email">האימייל שלך</label>
+      <input id="final-email" type="email" name="email" required placeholder="האימייל שלך" autocomplete="email">
+      <button type="submit">הצטרפו לרשימת ההמתנה</button>
+    </form>
+    <p class="waitlist-done" data-waitlist-done hidden>נרשמת. נעדכן אותך כשנפתח.</p>
+    <p class="waitlist-error" data-waitlist-error hidden>הכתובת לא נראית תקינה. אפשר לבדוק שוב?</p>
+  </div>
+
+  <footer>
+    <span>שינון</span>
+    <span data-year></span>
+  </footer>
+</section>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -3,13 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "comment": "supabase/functions הוא קוד Deno ולא נכנס לכאן — הוא נבדק ב-deno check, לפי supabase/functions/deno.json",
+  "include": ["app/**/*.ts", "app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx"]
 }

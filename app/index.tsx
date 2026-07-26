@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '@/src/components/AppText';
@@ -10,6 +10,7 @@ import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { Rule } from '@/src/components/Rule';
 import { Screen } from '@/src/components/Screen';
 import { listMaterials } from '@/src/data/materials';
+import { ApiError } from '@/src/lib/api';
 import { countLabel } from '@/src/lib/format';
 import { colors, spacing } from '@/src/theme/tokens';
 import type { MaterialSummary } from '@/src/types/material';
@@ -18,23 +19,41 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [materials, setMaterials] = useState<MaterialSummary[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const result = await listMaterials();
+      setMaterials(result);
+      setError(null);
+      return result;
+    } catch (caught) {
+      setMaterials((current) => current ?? []);
+      setError(caught instanceof ApiError ? caught.message : 'טעינת החומרים נכשלה.');
+      return null;
+    }
+  }, []);
 
   // נטען מחדש בכל חזרה למסך, כדי שחומר חדש יופיע ברשימה.
   useFocusEffect(
     useCallback(() => {
       let active = true;
-
-      listMaterials().then((result) => {
-        if (active) {
-          setMaterials(result);
-        }
+      void load().then(() => {
+        void active;
       });
-
       return () => {
         active = false;
       };
-    }, []),
+    }, [load]),
   );
+
+  // חומר בעיבוד מתעדכן בשרת, ולכן צריך דרך לרענן בלי לצאת מהמסך.
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, [load]);
 
   const isLoading = materials === null;
   const items = materials ?? [];
@@ -52,6 +71,13 @@ export default function HomeScreen() {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={Rule}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={colors.inkFaint}
+          />
+        }
         renderItem={({ item, index }) => (
           <MaterialRow material={item} index={index} onPress={openMaterial} />
         )}
@@ -74,6 +100,12 @@ export default function HomeScreen() {
             {isLoading || items.length > 0 ? (
               <AppText variant="monoSm" tone="faint" style={styles.count}>
                 {isLoading ? 'טוען…' : countLabel(items.length, 'חומר אחד', 'חומרים')}
+              </AppText>
+            ) : null}
+
+            {error ? (
+              <AppText variant="bodySmall" tone="body" style={styles.error}>
+                {error}
               </AppText>
             ) : null}
           </View>
@@ -125,6 +157,9 @@ const styles = StyleSheet.create({
   },
   empty: {
     paddingTop: spacing.xxxl,
+  },
+  error: {
+    marginTop: spacing.lg,
   },
   footer: {
     paddingHorizontal: spacing.page,
