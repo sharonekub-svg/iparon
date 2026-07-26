@@ -91,10 +91,7 @@ alter table materials enable row level security;
 alter table model_calls enable row level security;
 alter table usage_caps enable row level security;
 
--- ל-EXECUTE יש grant אוטומטי ל-PUBLIC, ולכן revoke מ-anon לבדו לא מספיק:
--- הוא היה ממשיך לעבוד דרך PUBLIC. חוסמים את PUBLIC ופותחים ל-service role.
-revoke all on function month_usage() from public;
-grant execute on function month_usage() to service_role;
+-- ההרשאות עצמן נסגרות בהגירות שאחרי זו.
 
 -- ── updated_at ─────────────────────────────────────────────────────────
 

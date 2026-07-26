@@ -2,23 +2,35 @@
 
 שתי פונקציות Edge וסכימה אחת. הכול פרוס לפרויקט Supabase אחד.
 
-## פריסה
+## הפרויקט הפרוס
+
+| | |
+|---|---|
+| Project ref | `fqunvywtgtjnpicxjxtc` |
+| URL | `https://fqunvywtgtjnpicxjxtc.supabase.co` |
+| Region | `ap-southeast-2` (Sydney) |
+
+הסכימה, שתי הפונקציות וההרשאות כבר פרוסות ומאומתות. **מה שנשאר: מפתח המודל.**
 
 ```bash
-# פעם אחת
 npx supabase login
-npx supabase link --project-ref <PROJECT_REF>
-
-# הסכימה
-npx supabase db push
-
-# מפתח המודל — לתוך Secrets של הפרויקט, לא לקוד ולא ל-.env של האפליקציה
+npx supabase link --project-ref fqunvywtgtjnpicxjxtc
 npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+```
 
-# הפונקציות
+בלי הצעד הזה כל העלאה תיכשל עם `חסר משתנה סביבה: ANTHROPIC_API_KEY`,
+והחומר יסומן `failed` — בלי לעלות כלום.
+
+## פריסה מחדש
+
+```bash
+npx supabase db push
 npx supabase functions deploy analyze
 npx supabase functions deploy materials
 ```
+
+היסטוריית ההגירות בקבצים כאן תואמת בדיוק את מה שרשום ב-DB, ולכן
+`db push` על הפרויקט הזה הוא no-op ולא ינסה להריץ שוב את הסכימה.
 
 `SUPABASE_URL` ו-`SUPABASE_SERVICE_ROLE_KEY` מוזרקים אוטומטית לפונקציות ואין
 צורך להגדיר אותם.
@@ -30,7 +42,10 @@ npx supabase functions deploy materials
 
 | קובץ | מה הוא עושה |
 |---|---|
-| `migrations/20260726000000_init.sql` | טבלאות `materials`, `model_calls`, `usage_caps`, ו-RLS |
+| `migrations/…_init_shinun_schema.sql` | טבלאות `materials`, `model_calls`, `usage_caps`, ו-RLS |
+| `migrations/…_lock_month_usage_*.sql` | חסימת `month_usage()` מול anon |
+| `migrations/…_revoke_table_grants_*.sql` | הסרת הרשאות טבלה מ-anon |
+| `migrations/…_pin_touch_updated_at_*.sql` | `search_path` קבוע לפונקציית הטריגר |
 | `functions/analyze` | POST: מקבל קובץ, פותח חומר במצב "בעיבוד", ומעבד ברקע |
 | `functions/materials` | GET: רשימת החומרים של מכשיר, או חומר אחד עם התוצאה |
 | `functions/_shared/model.ts` | הפרומפט, הסכימה, והקריאה היחידה למודל |
@@ -81,6 +96,21 @@ from model_calls group by 1 order by 1 desc;
 הרבה עמודים עלול להיחתך, והחומר יסומן `failed`. מגבלת הקובץ כרגע היא 15MB,
 ואם יתברר שעמודים ארוכים נחתכים — הפתרון הוא לפצל את הקובץ לקבוצות עמודים
 ולאחד את התוצאות, וזה עוד לא נבנה.
+
+## מה אומת בפועל, ומה לא
+
+אומת מול הפרויקט הפרוס:
+
+- הסכימה קיימת, `usage_caps` מכיל שורה אחת (500 עיבודים, 25 דולר)
+- `month_usage()` מחזירה 0 ו-0, ו-anon **לא** יכול להריץ אותה
+- ל-anon אין שום הרשאה על שלוש הטבלאות (לא select ולא insert)
+- ל-service_role יש את כל מה שהפונקציות צריכות
+- הלינטר של Supabase נקי מאזהרות (נשארו שלוש הודעות INFO על
+  "RLS enabled no policy" — זה בכוונה, זו חסימה מלאה)
+- שתי הפונקציות במצב ACTIVE עם `verify_jwt` פעיל
+
+**לא אומת:** אף קריאה אמיתית לפונקציות. הסביבה שממנה נפרסו חוסמת יציאה
+ל-`*.supabase.co`, ולכן ההרצה הראשונה של `analyze` תהיה מהאפליקציה שלך.
 
 ## בדיקה מקומית
 
