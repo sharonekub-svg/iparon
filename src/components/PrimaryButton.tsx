@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from './AppText';
-import { colors, radius, spacing, type } from '@/src/theme/tokens';
+import { colors, radius, spacing } from '@/src/theme/tokens';
 
 type Props = {
   label: string;
@@ -22,11 +22,13 @@ export function PrimaryButton({ label, hint, onPress, disabled }: Props) {
         onPress={onPress}
         style={({ pressed }) => [styles.button, pressed && styles.pressed, disabled && styles.disabled]}
       >
-        <AppText style={styles.label}>{label}</AppText>
+        <AppText variant="bodyStrong" tone="onInk" style={styles.label}>
+          {label}
+        </AppText>
       </Pressable>
 
       {hint ? (
-        <AppText variant="meta" mono muted style={styles.hint}>
+        <AppText variant="monoSm" tone="faint" style={styles.hint}>
           {hint}
         </AppText>
       ) : null}
@@ -36,12 +38,12 @@ export function PrimaryButton({ label, hint, onPress, disabled }: Props) {
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 56,
-    borderRadius: radius.md,
+    minHeight: 54,
+    borderRadius: radius.sm,
     backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.xxl,
   },
   pressed: {
     opacity: 0.82,
@@ -50,12 +52,10 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   label: {
-    ...type.bodyStrong,
-    color: colors.paper,
     textAlign: 'center',
   },
   hint: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     textAlign: 'center',
   },
 });

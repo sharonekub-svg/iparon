@@ -8,9 +8,10 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { MaterialRow } from '@/src/components/MaterialRow';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { Rule } from '@/src/components/Rule';
+import { Screen } from '@/src/components/Screen';
 import { listMaterials } from '@/src/data/materials';
 import { countLabel } from '@/src/lib/format';
-import { colors, rowDirection, spacing } from '@/src/theme/tokens';
+import { colors, spacing } from '@/src/theme/tokens';
 import type { MaterialSummary } from '@/src/types/material';
 
 export default function HomeScreen() {
@@ -44,49 +45,54 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <Screen>
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={Rule}
-        renderItem={({ item }) => <MaterialRow material={item} onPress={openMaterial} />}
+        renderItem={({ item, index }) => (
+          <MaterialRow material={item} index={index} onPress={openMaterial} />
+        )}
         ListHeaderComponent={
           <View>
-            <View style={styles.masthead}>
-              <AppText variant="display">עיפרון</AppText>
-              <AppText variant="body" muted style={styles.tagline}>
-                מעלים סיכום או מצלמים דף, ומקבלים סיכום מסודר, כרטיסיות וקוויז. הכול בעברית, הכול מתוך החומר שלך.
+            <AppText variant="mono" tone="muted" style={styles.wordmark}>
+              שינון
+            </AppText>
+
+            <AppText variant="display">החומרים שלי</AppText>
+            <AppText variant="monoLg" tone="faint" style={styles.tagline}>
+              כל החומר שלך, מוכן למבחן.
+            </AppText>
+
+            <View style={styles.divider}>
+              <Rule />
+            </View>
+
+            {/* כשהרשימה ריקה, המצב הריק כבר אומר את זה — אין צורך ב"0 חומרים" */}
+            {isLoading || items.length > 0 ? (
+              <AppText variant="monoSm" tone="faint" style={styles.count}>
+                {isLoading ? 'טוען…' : countLabel(items.length, 'חומר אחד', 'חומרים')}
               </AppText>
-            </View>
-
-            <Rule />
-
-            <View style={styles.sectionHead}>
-              <AppText variant="section">החומרים שלי</AppText>
-              {/* כשהרשימה ריקה, המצב הריק כבר אומר את זה — אין צורך ב"0 חומרים" */}
-              {isLoading || items.length > 0 ? (
-                <AppText variant="meta" mono muted>
-                  {isLoading ? 'טוען…' : countLabel(items.length, 'חומר אחד', 'חומרים')}
-                </AppText>
-              ) : null}
-            </View>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
           isLoading ? null : (
-            <EmptyState
-              title="עוד לא העלית חומר"
-              body="העלה PDF של סיכום, או צלם דף מהמחברת. בתוך דקה יחזרו סיכום מסודר, כרטיסיות שאלה־תשובה וקוויז אמריקאי."
-            />
+            <View style={styles.empty}>
+              <EmptyState
+                title="עוד לא העלית חומר"
+                body="צלם דף מהמחברת או העלה קובץ. בתוך דקה יחזרו סיכום מסודר, כרטיסיות שאלה־תשובה וקוויז — מהחומר שלך, לא מהאינטרנט."
+              />
+            </View>
           )
         }
       />
 
       <Rule />
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.xl }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.xxl }]}>
         <PrimaryButton
           label="העלאה של חומר חדש"
           // מתחיל במילה עברית בכוונה: מחרוזת שמתחילה בלטינית מקבלת כיוון
@@ -95,38 +101,34 @@ export default function HomeScreen() {
           onPress={() => router.push('/upload')}
         />
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.paper,
-  },
   list: {
     paddingHorizontal: spacing.page,
     paddingBottom: spacing.section,
   },
-  masthead: {
-    paddingTop: spacing.section,
-    paddingBottom: spacing.xxxl,
+  wordmark: {
+    paddingTop: spacing.xxl,
+    marginBottom: spacing.sectionLg,
   },
   tagline: {
-    marginTop: spacing.md,
-    maxWidth: 420,
+    marginTop: spacing.lg,
   },
-  sectionHead: {
-    flexDirection: rowDirection,
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.sm,
+  divider: {
+    marginTop: spacing.section,
+  },
+  count: {
+    marginTop: spacing.xl,
+  },
+  empty: {
+    paddingTop: spacing.xxxl,
   },
   footer: {
     paddingHorizontal: spacing.page,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.xxl,
     backgroundColor: colors.paper,
   },
 });

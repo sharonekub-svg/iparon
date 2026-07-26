@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '@/src/components/AppText';
 import { Chevron } from '@/src/components/Chevron';
 import { Rule } from '@/src/components/Rule';
-import { colors, rowDirection, spacing } from '@/src/theme/tokens';
+import { Screen } from '@/src/components/Screen';
+import { rowDirection, spacing } from '@/src/theme/tokens';
 
 /**
  * שלד בלבד. מסך ההעלאה עצמו (בחירת PDF / צילום, המרת עמודים לתמונות
@@ -13,45 +13,39 @@ import { colors, rowDirection, spacing } from '@/src/theme/tokens';
  */
 export default function UploadScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <Screen>
       <View style={styles.bar}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="חזרה"
           onPress={() => router.back()}
-          hitSlop={spacing.md}
+          hitSlop={spacing.lg}
         >
           <Chevron direction="back" size={11} />
         </Pressable>
-        <AppText variant="section">העלאה</AppText>
+        <AppText variant="label">העלאה</AppText>
       </View>
 
       <Rule />
 
       <View style={styles.body}>
-        <AppText variant="body" muted>
+        <AppText variant="body" tone="muted">
           המסך הזה נבנה בשלב הבא.
         </AppText>
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.paper,
-  },
   bar: {
     flexDirection: rowDirection,
     alignItems: 'center',
-    justifyContent: 'flex-start',
     gap: spacing.lg,
     paddingHorizontal: spacing.page,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.xl,
   },
   body: {
     padding: spacing.page,

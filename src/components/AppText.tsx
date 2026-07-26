@@ -1,45 +1,35 @@
 import { StyleSheet, Text, TextProps } from 'react-native';
 
-import { colors, fonts, type, TypeVariant } from '@/src/theme/tokens';
+import { colors, type, TypeVariant } from '@/src/theme/tokens';
+
+/** דרגות הדיו של מערכת העיצוב, מכותרת ועד מטא־דאטה */
+export type Tone = 'ink' | 'body' | 'muted' | 'faint' | 'faintest' | 'onInk';
+
+const tones: Record<Tone, string> = {
+  ink: colors.ink,
+  body: colors.inkBody,
+  muted: colors.inkMuted,
+  faint: colors.inkFaint,
+  faintest: colors.inkFaintest,
+  onInk: colors.onInk,
+};
 
 type Props = TextProps & {
   variant?: TypeVariant;
-  /** אפור במקום דיו — טקסט משני */
-  muted?: boolean;
-  /** מונוספייס: מספרים ומטא־דאטה */
-  mono?: boolean;
+  tone?: Tone;
 };
 
 /**
- * כל טקסט באפליקציה עובר כאן, כדי שכיוון הכתיבה והיישור יהיו RTL
- * מהרגע הראשון ולא תיקון מאוחר.
+ * כל טקסט באפליקציה עובר כאן: הווריאנט קובע פונט, גודל וגובה שורה,
+ * והבסיס קובע שכיוון הכתיבה והיישור יהיו RTL מהרגע הראשון.
  */
-export function AppText({ variant = 'body', muted, mono, style, ...rest }: Props) {
-  return (
-    <Text
-      {...rest}
-      style={[
-        styles.base,
-        type[variant],
-        mono ? styles.mono : null,
-        muted ? styles.muted : null,
-        style,
-      ]}
-    />
-  );
+export function AppText({ variant = 'body', tone = 'ink', style, ...rest }: Props) {
+  return <Text {...rest} style={[styles.base, type[variant], { color: tones[tone] }, style]} />;
 }
 
 const styles = StyleSheet.create({
   base: {
-    color: colors.ink,
-    fontFamily: fonts.sans,
     textAlign: 'right',
     writingDirection: 'rtl',
-  },
-  muted: {
-    color: colors.inkMuted,
-  },
-  mono: {
-    fontFamily: fonts.mono,
   },
 });

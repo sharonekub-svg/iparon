@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   chevron: {
     borderTopWidth: 1.5,
     borderRightWidth: 1.5,
-    borderColor: colors.inkMuted,
+    borderColor: colors.inkFaint,
   },
   // פינה של גבול עליון+ימני מצביעה כלפי מעלה־ימינה; סיבוב מיישר אותה.
   forward: {

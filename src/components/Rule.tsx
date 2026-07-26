@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, hairline } from '@/src/theme/tokens';
+import { borderWidth, colors } from '@/src/theme/tokens';
 
 /** קו הפרדה דקיק, כמו שורה במחברת. */
 export function Rule() {
@@ -9,7 +9,7 @@ export function Rule() {
 
 const styles = StyleSheet.create({
   rule: {
-    height: hairline,
-    backgroundColor: colors.rule,
+    height: borderWidth,
+    backgroundColor: colors.line,
   },
 });

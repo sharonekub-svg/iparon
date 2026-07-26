@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;-webkit-font-smoothing:antialiased}
+  ::selection{background:#111110;color:#FAFAF9}
+  input::placeholder{color:#B4B2AC}
+  @keyframes shGrain{0%,100%{transform:translate(0,0)}10%{transform:translate(-1%,-2%)}20%{transform:translate(-3%,1%)}30%{transform:translate(2%,-3%)}40%{transform:translate(-2%,3%)}50%{transform:translate(3%,1%)}60%{transform:translate(-1%,2%)}70%{transform:translate(1%,-1%)}80%{transform:translate(-3%,-2%)}90%{transform:translate(2%,2%)}}
+  @keyframes shFile{0%{opacity:0;transform:translateY(-14px)}9%{opacity:1;transform:translateY(0)}34%{opacity:1;transform:translateY(0)}40%{opacity:0;transform:translateY(0)}100%{opacity:0}}
+  @keyframes shBar{0%,9%{width:0%}34%{width:100%}42%{width:100%}48%{opacity:0}100%{opacity:0;width:0%}}
+  @keyframes shCard1{0%,44%{opacity:0;transform:translateY(12px)}54%{opacity:1;transform:translateY(0)}88%{opacity:1;transform:translateY(0)}96%{opacity:0;transform:translateY(-6px)}100%{opacity:0}}
+  @keyframes shCard2{0%,50%{opacity:0;transform:translateY(12px)}60%{opacity:1;transform:translateY(0)}88%{opacity:1;transform:translateY(0)}96%{opacity:0;transform:translateY(-6px)}100%{opacity:0}}
+  @keyframes shCard3{0%,56%{opacity:0;transform:translateY(12px)}66%{opacity:1;transform:translateY(0)}88%{opacity:1;transform:translateY(0)}96%{opacity:0;transform:translateY(-6px)}100%{opacity:0}}
+</style>
+</helmet>
+<div dir="rtl" lang="he" style="background:#FAFAF9;color:#111110;font-family:'Assistant',sans-serif;position:relative;overflow-x:hidden;min-height:100vh;">
+  <div style="position:fixed;inset:0;pointer-events:none;opacity:0.035;z-index:0;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);background-size:160px 160px;animation:shGrain 1.2s steps(2) infinite;"></div>
+
+  <!-- HERO -->
+  <section style="position:relative;z-index:1;padding:28px 22px 64px;max-width:640px;margin:0 auto;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.02em;color:#6B6963;margin-bottom:56px;">שינון</div>
+    <h1 style="font-size:clamp(40px,10vw,60px);line-height:1.08;font-weight:800;margin:0 0 22px;letter-spacing:-0.01em;">מעלים דף.<br>יוצא סיכום, כרטיסיות וקוויז.</h1>
+    <p style="font-size:19px;line-height:1.65;color:#4A4844;font-weight:400;margin:0 0 8px;max-width:480px;">מצלמים דף מהמחברת או מעלים קובץ. שינון מסביר, מסכם ובונה תרגול — מהחומר שלכם, לא מהאינטרנט.</p>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#9A988F;margin:0 0 36px;">כל החומר שלך, מוכן למבחן.</p>
+
+    <div style="max-width:400px;">
+      <sc-if value="{{ !heroJoined }}" hint-placeholder-val="{{ true }}">
+        <form onSubmit="{{ onHeroSubmit }}" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input type="email" required="" placeholder="האימייל שלך" value="{{ heroEmail }}" onChange="{{ onHeroEmailChange }}" style="flex:1;min-width:180px;padding:15px 18px;border-radius:10px;border:1px solid rgba(17,17,16,0.16);background:#fff;font-family:'Assistant',sans-serif;font-size:16px;color:#111110;outline:none;" />
+          <button type="submit" style="padding:15px 22px;border-radius:10px;border:none;background:#111110;color:#FAFAF9;font-family:'Assistant',sans-serif;font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap;">הצטרפו לרשימת ההמתנה</button>
+        </form>
+      </sc-if>
+      <sc-if value="{{ heroJoined }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:16px 18px;border-radius:10px;border:1px solid rgba(17,17,16,0.16);background:#F1F0EC;font-size:16px;">נרשמת. נעדכן אותך כשנפתח.</div>
+      </sc-if>
+    </div>
+  </section>
+
+  <div style="border-top:1px solid rgba(17,17,16,0.1);"></div>
+
+  <!-- DEMO -->
+  <section style="position:relative;z-index:1;padding:64px 22px;max-width:640px;margin:0 auto;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;margin-bottom:10px;">01</div>
+    <h2 style="font-size:clamp(26px,6vw,32px);font-weight:700;margin:0 0 40px;letter-spacing:-0.005em;">ככה זה עובד</h2>
+
+    <div style="position:relative;border:1px solid rgba(17,17,16,0.12);border-radius:16px;background:#fff;padding:32px 24px;min-height:280px;overflow:hidden;">
+      <!-- dropzone base -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#B4B2AC;font-size:14px;">
+        <div style="width:56px;height:56px;border:1.5px dashed rgba(17,17,16,0.2);border-radius:12px;"></div>
+        <span>גוררים דף לכאן</span>
+      </div>
+
+      <!-- animated file -->
+      <div style="position:absolute;top:32px;left:50%;transform:translateX(-50%);width:88px;height:110px;background:#fff;border:1.5px solid #111110;border-radius:6px;animation:shFile 6s ease-in-out infinite;box-shadow:0 6px 16px rgba(17,17,16,0.08);">
+        <div style="padding:14px 10px;display:flex;flex-direction:column;gap:6px;">
+          <div style="height:5px;width:70%;background:#DAD8D2;border-radius:2px;"></div>
+          <div style="height:5px;width:90%;background:#DAD8D2;border-radius:2px;"></div>
+          <div style="height:5px;width:55%;background:#DAD8D2;border-radius:2px;"></div>
+          <div style="height:5px;width:80%;background:#DAD8D2;border-radius:2px;"></div>
+        </div>
+      </div>
+
+      <!-- progress bar -->
+      <div style="position:absolute;bottom:26px;right:24px;left:24px;height:3px;background:#EDEBE6;border-radius:2px;overflow:hidden;">
+        <div style="height:100%;background:#111110;animation:shBar 6s ease-in-out infinite;"></div>
+      </div>
+
+      <!-- results -->
+      <div style="position:absolute;inset:24px;display:grid;grid-template-columns:1fr;gap:10px;">
+        <div style="animation:shCard1 6s ease-in-out infinite;background:#FAFAF9;border:1px solid rgba(17,17,16,0.1);border-radius:10px;padding:12px 14px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#9A988F;margin-bottom:4px;">סיכום</div>
+          <div style="font-size:13px;line-height:1.5;color:#4A4844;">מערכת העצבים המרכזית וההיקפית. הנוירון כיחידת בסיס.</div>
+        </div>
+        <div style="animation:shCard2 6s ease-in-out infinite;background:#FAFAF9;border:1px solid rgba(17,17,16,0.1);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#9A988F;margin-bottom:4px;">כרטיסייה</div>
+            <div style="font-size:13px;color:#4A4844;">מהי יחידת הבסיס של מערכת העצבים?</div>
+          </div>
+        </div>
+        <div style="animation:shCard3 6s ease-in-out infinite;background:#FAFAF9;border:1px solid rgba(17,17,16,0.1);border-radius:10px;padding:12px 14px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#9A988F;margin-bottom:4px;">קוויז</div>
+          <div style="font-size:13px;color:#4A4844;">איזה חלק מעביר את האות אל התא הבא?</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="border-top:1px solid rgba(17,17,16,0.1);"></div>
+
+  <!-- THREE STEPS -->
+  <section style="position:relative;z-index:1;padding:64px 22px;max-width:640px;margin:0 auto;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;margin-bottom:10px;">02</div>
+    <h2 style="font-size:clamp(26px,6vw,32px);font-weight:700;margin:0 0 40px;letter-spacing:-0.005em;">שלושה שלבים</h2>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:18px;padding:26px 0;border-top:1px solid rgba(17,17,16,0.1);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#9A988F;">01</div>
+        <div><h3 style="margin:0 0 8px;font-size:19px;font-weight:700;">העלה כל חומר</h3><p style="margin:0;font-size:15px;line-height:1.7;color:#6B6963;">גרור PDF, תמונה, או צילום מסך. שינון קורא הכל, כולל כתב יד.</p></div>
+      </div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:18px;padding:26px 0;border-top:1px solid rgba(17,17,16,0.1);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#9A988F;">02</div>
+        <div><h3 style="margin:0 0 8px;font-size:19px;font-weight:700;">קבל כרטיסיות</h3><p style="margin:0;font-size:15px;line-height:1.7;color:#6B6963;">המערכת מזהה את המושגים החשובים ובונה מהם סיכום וכרטיסיות לחזרה.</p></div>
+      </div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:18px;padding:26px 0;border-top:1px solid rgba(17,17,16,0.1);border-bottom:1px solid rgba(17,17,16,0.1);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#9A988F;">03</div>
+        <div><h3 style="margin:0 0 8px;font-size:19px;font-weight:700;">תרגל עד שנכנס</h3><p style="margin:0;font-size:15px;line-height:1.7;color:#6B6963;">קוויז קצר על החומר, עם משוב מיידי, עד שהתשובות בטוחות.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REAL FLASHCARD + QUIZ -->
+  <section style="position:relative;z-index:1;padding:64px 22px;max-width:640px;margin:0 auto;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;margin-bottom:10px;">03</div>
+    <h2 style="font-size:clamp(26px,6vw,32px);font-weight:700;margin:0 0 8px;letter-spacing:-0.005em;">ככה זה נראה בפועל</h2>
+    <p style="margin:0 0 40px;font-size:15px;color:#6B6963;">דוגמה מביולוגיה, מערכת העצבים.</p>
+
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;">
+      <span style="font-size:14px;font-weight:600;color:#4A4844;">כרטיסייה</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;">{{ cardPos }}</span>
+    </div>
+    <div onClick="{{ onFlipCard }}" style="cursor:pointer;min-height:150px;border:1px solid rgba(17,17,16,0.14);border-radius:14px;background:#fff;padding:28px 26px;display:flex;align-items:center;justify-content:center;text-align:center;margin-bottom:14px;">
+      <p style="margin:0;font-size:19px;line-height:1.6;font-weight:600;">{{ cardText }}</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:56px;">
+      <button onClick="{{ onFlipCard }}" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(17,17,16,0.16);background:#fff;font-family:'Assistant',sans-serif;font-size:14px;color:#4A4844;cursor:pointer;">{{ cardFlipLabel }}</button>
+      <button onClick="{{ onNextCard }}" style="flex:1;padding:12px;border-radius:10px;border:none;background:#111110;color:#FAFAF9;font-family:'Assistant',sans-serif;font-size:14px;cursor:pointer;">הכרטיסייה הבאה</button>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;">
+      <span style="font-size:14px;font-weight:600;color:#4A4844;">קוויז</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;">{{ quizPos }}</span>
+    </div>
+
+    <sc-if value="{{ !quizDone }}" hint-placeholder-val="{{ true }}">
+      <div style="border:1px solid rgba(17,17,16,0.14);border-radius:14px;background:#fff;padding:26px;">
+        <p style="margin:0 0 20px;font-size:18px;line-height:1.55;font-weight:600;">{{ quizQuestion }}</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ quizOptions }}" as="opt" hint-placeholder-count="4">
+            <button onClick="{{ opt.onClick }}" style="{{ opt.style }}">{{ opt.text }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ quizAnswered }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+            <button onClick="{{ onNextQuestion }}" style="padding:12px 22px;border-radius:10px;border:none;background:#111110;color:#FAFAF9;font-family:'Assistant',sans-serif;font-size:14px;cursor:pointer;">{{ quizNextLabel }}</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ quizDone }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(17,17,16,0.14);border-radius:14px;background:#fff;padding:32px;text-align:center;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;margin:0 0 8px;">התוצאה שלך</p>
+        <p style="font-size:32px;font-weight:800;margin:0 0 20px;">{{ quizScoreText }}</p>
+        <button onClick="{{ onRestartQuiz }}" style="padding:12px 22px;border-radius:10px;border:1px solid rgba(17,17,16,0.16);background:#fff;font-family:'Assistant',sans-serif;font-size:14px;cursor:pointer;">התחל שוב</button>
+      </div>
+    </sc-if>
+  </section>
+
+  <div style="border-top:1px solid rgba(17,17,16,0.1);"></div>
+
+  <!-- FAQ -->
+  <section style="position:relative;z-index:1;padding:64px 22px;max-width:640px;margin:0 auto;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9A988F;margin-bottom:10px;">04</div>
+    <h2 style="font-size:clamp(26px,6vw,32px);font-weight:700;margin:0 0 40px;letter-spacing:-0.005em;">שאלות נפוצות</h2>
+    <div>
+      <sc-for list="{{ faqItems }}" as="item" hint-placeholder-count="7">
+        <div style="border-top:1px solid rgba(17,17,16,0.1);">
+          <button onClick="{{ item.onToggle }}" style="width:100%;text-align:right;background:none;border:none;padding:20px 0;display:flex;justify-content:space-between;align-items:center;gap:16px;cursor:pointer;font-family:'Assistant',sans-serif;">
+            <span style="font-size:17px;font-weight:600;color:#111110;">{{ item.q }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#9A988F;flex-shrink:0;">{{ item.marker }}</span>
+          </button>
+          <sc-if value="{{ item.open }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0 0 22px;font-size:15px;line-height:1.75;color:#6B6963;max-width:520px;">{{ item.a }}</p>
+          </sc-if>
+        </div>
+      </sc-for>
+      <div style="border-top:1px solid rgba(17,17,16,0.1);"></div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section style="position:relative;z-index:1;padding:80px 22px 64px;max-width:640px;margin:0 auto;">
+    <h2 style="font-size:clamp(32px,8vw,44px);font-weight:800;margin:0 0 20px;letter-spacing:-0.01em;line-height:1.15;">כל החומר שלך,<br>מוכן למבחן.</h2>
+    <p style="font-size:16px;color:#6B6963;margin:0 0 32px;max-width:440px;line-height:1.6;">שינון עדיין לא פתוח לכולם. הצטרפו לרשימת ההמתנה ותקבלו הזמנה כשנפתח.</p>
+    <div style="max-width:400px;">
+      <sc-if value="{{ !finalJoined }}" hint-placeholder-val="{{ true }}">
+        <form onSubmit="{{ onFinalSubmit }}" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input type="email" required="" placeholder="האימייל שלך" value="{{ finalEmail }}" onChange="{{ onFinalEmailChange }}" style="flex:1;min-width:180px;padding:15px 18px;border-radius:10px;border:1px solid rgba(17,17,16,0.16);background:#fff;font-family:'Assistant',sans-serif;font-size:16px;color:#111110;outline:none;" />
+          <button type="submit" style="padding:15px 22px;border-radius:10px;border:none;background:#111110;color:#FAFAF9;font-family:'Assistant',sans-serif;font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap;">הצטרפו לרשימת ההמתנה</button>
+        </form>
+      </sc-if>
+      <sc-if value="{{ finalJoined }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:16px 18px;border-radius:10px;border:1px solid rgba(17,17,16,0.16);background:#F1F0EC;font-size:16px;">נרשמת. נעדכן אותך כשנפתח.</div>
+      </sc-if>
+    </div>
+    <div style="margin-top:64px;padding-top:24px;border-top:1px solid rgba(17,17,16,0.1);display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;color:#9A988F;">
+      <span>שינון</span>
+      <span>{{ currentYear }}</span>
+    </div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const CARDS = [
+  { q: "מהי יחידת הבסיס של מערכת העצבים?", a: "הנוירון" },
+  { q: "מה תפקיד המיאלין?", a: "מבודד את האקסון ומאיץ את הולכת האות" },
+  { q: "מהם שני חלקי מערכת העצבים?", a: "מערכת העצבים המרכזית ומערכת העצבים ההיקפית" },
+  { q: "מה מעביר האקסון?", a: "אותות חשמליים אל הסינפסה" }
+];
+
+const QUIZ = [
+  { q: "איזה חלק של הנוירון מעביר את האות אל התא הבא?", options: ["דנדריט", "אקסון", "גרעין", "ממברנה"], answer: 1 },
+  { q: "ממה מורכבים המוח וחוט השדרה?", options: ["מערכת העצבים ההיקפית", "הסינפסה", "מערכת העצבים המרכזית", "מערכת העצבים האוטונומית"], answer: 2 },
+  { q: "מה תפקיד המיאלין?", options: ["מייצר נוירונים חדשים", "מעביר דם לתא", "מחבר בין שני חוטי שדרה", "מבודד את האקסון ומאיץ את ההולכה"], answer: 3 }
+];
+
+const FAQ = [
+  { q: "האם זה חינם?", a: "כן. שינון חינמי בשלב הזה. בעתיד יתווספו תכונות בתשלום, אבל הבסיס יישאר פתוח." },
+  { q: "האם זה עובד עם כתב יד?", a: "כן. אתה מצלם דף כתוב ביד, והמערכת קוראת אותו כמו טקסט מודפס." },
+  { q: "האם זה מתאים לחומר של הבגרות?", a: "כן. שינון מזהה מבנה של פרקי לימוד ומתאים את הסיכום והשאלות לרמת בגרות." },
+  { q: "אילו סוגי קבצים אפשר להעלות?", a: "PDF, תמונה, קובץ Word, ותמונה שצילמת עכשיו במצלמה." },
+  { q: "מה קורה עם החומר שאני מעלה? מי רואה אותו?", a: "החומר שלך נשאר שלך. הוא לא משמש לאימון מודלים ולא נגיש לאף אחד מלבדך." },
+  { q: "האם המערכת ממציאה תשובות?", a: "המערכת עובדת רק מהחומר שהעלית. אם משהו לא ברור בטקסט המקורי, היא מציינת זאת במקום לנחש." },
+  { q: "יש אפליקציה לטלפון?", a: "כרגע שינון פועל בדפדפן, מותאם לטלפון. אפליקציה נפרדת בתכנון." }
+];
+
+const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+class Component extends DCLogic {
+  state = {
+    heroEmail: "", heroJoined: false,
+    finalEmail: "", finalJoined: false,
+    cardIndex: 0, cardFlipped: false,
+    quizIndex: 0, quizSelected: null, quizAnswered: false, quizScore: 0, quizDone: false,
+    faqOpen: null
+  };
+
+  renderVals() {
+    const card = CARDS[this.state.cardIndex];
+    const q = QUIZ[this.state.quizIndex];
+    const isLastQ = this.state.quizIndex === QUIZ.length - 1;
+
+    const quizOptions = q.options.map((text, i) => {
+      let bg = "#fff", border = "rgba(17,17,16,0.16)", color = "#111110", weight = 500;
+      if (this.state.quizAnswered) {
+        if (i === q.answer) { bg = "#111110"; border = "#111110"; color = "#FAFAF9"; weight = 600; }
+        else if (i === this.state.quizSelected) { bg = "#F1F0EC"; border = "rgba(17,17,16,0.16)"; color = "#9A988F"; }
+        else { color = "#B4B2AC"; }
+      }
+      return {
+        text,
+        style: {
+          textAlign: "right", padding: "14px 16px", borderRadius: "10px",
+          border: "1px solid " + border, background: bg, color,
+          fontFamily: "Assistant,sans-serif", fontSize: "15px", fontWeight: weight,
+          cursor: this.state.quizAnswered ? "default" : "pointer"
+        },
+        onClick: this.state.quizAnswered ? () => {} : () => this.selectQuizOption(i)
+      };
+    });
+
+    const faqItems = FAQ.map((item, i) => ({
+      q: item.q, a: item.a,
+      open: this.state.faqOpen === i,
+      marker: this.state.faqOpen === i ? "—" : "+",
+      onToggle: () => this.setState(s => ({ faqOpen: s.faqOpen === i ? null : i }))
+    }));
+
+    return {
+      heroEmail: this.state.heroEmail,
+      heroJoined: this.state.heroJoined,
+      onHeroEmailChange: (e) => this.setState({ heroEmail: e.target.value }),
+      onHeroSubmit: (e) => { e.preventDefault(); if (emailOk(this.state.heroEmail)) this.setState({ heroJoined: true }); },
+
+      finalEmail: this.state.finalEmail,
+      finalJoined: this.state.finalJoined,
+      onFinalEmailChange: (e) => this.setState({ finalEmail: e.target.value }),
+      onFinalSubmit: (e) => { e.preventDefault(); if (emailOk(this.state.finalEmail)) this.setState({ finalJoined: true }); },
+
+      cardPos: (this.state.cardIndex + 1) + "/" + CARDS.length,
+      cardText: this.state.cardFlipped ? card.a : card.q,
+      cardFlipLabel: this.state.cardFlipped ? "חזרה לשאלה" : "הצג תשובה",
+      onFlipCard: () => this.setState(s => ({ cardFlipped: !s.cardFlipped })),
+      onNextCard: () => this.setState(s => ({ cardIndex: (s.cardIndex + 1) % CARDS.length, cardFlipped: false })),
+
+      quizPos: (this.state.quizIndex + 1) + "/" + QUIZ.length,
+      quizQuestion: q.q,
+      quizOptions,
+      quizAnswered: this.state.quizAnswered,
+      quizDone: this.state.quizDone,
+      quizNextLabel: isLastQ ? "לתוצאה" : "השאלה הבאה",
+      quizScoreText: this.state.quizScore + " מתוך " + QUIZ.length,
+      onNextQuestion: () => {
+        if (isLastQ) this.setState({ quizDone: true });
+        else this.setState(s => ({ quizIndex: s.quizIndex + 1, quizSelected: null, quizAnswered: false }));
+      },
+      onRestartQuiz: () => this.setState({ quizIndex: 0, quizSelected: null, quizAnswered: false, quizScore: 0, quizDone: false }),
+
+      faqItems,
+      currentYear: new Date().getFullYear()
+    };
+  }
+
+  selectQuizOption(i) {
+    const q = QUIZ[this.state.quizIndex];
+    const correct = i === q.answer;
+    this.setState(s => ({ quizSelected: i, quizAnswered: true, quizScore: s.quizScore + (correct ? 1 : 0) }));
+  }
+}
+
+</script>
+</body>
+</html>

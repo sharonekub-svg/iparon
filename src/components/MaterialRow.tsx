@@ -3,11 +3,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from './AppText';
 import { Chevron } from './Chevron';
 import { countLabel, formatHebrewDate, joinMeta } from '@/src/lib/format';
-import { colors, rowDirection, spacing } from '@/src/theme/tokens';
+import { colors, radius, rowDirection, spacing } from '@/src/theme/tokens';
 import { MaterialSummary, statusLabels } from '@/src/types/material';
 
 type Props = {
   material: MaterialSummary;
+  /** מספר רץ, במונוספייס — כמו רשימת השלבים באתר */
+  index: number;
   onPress: (material: MaterialSummary) => void;
 };
 
@@ -23,7 +25,7 @@ function metaLine(material: MaterialSummary): string {
   ]);
 }
 
-export function MaterialRow({ material, onPress }: Props) {
+export function MaterialRow({ material, index, onPress }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,16 +34,23 @@ export function MaterialRow({ material, onPress }: Props) {
       onPress={() => onPress(material)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
+      {/* המספר והחץ מיושרים לשורת הכותרת, לא למרכז הבלוק */}
+      <AppText variant="monoLg" tone="faint" style={styles.index}>
+        {String(index + 1).padStart(2, '0')}
+      </AppText>
+
       <View style={styles.text}>
-        <AppText variant="bodyStrong" numberOfLines={2}>
+        <AppText variant="subheading" numberOfLines={2}>
           {material.title}
         </AppText>
-        <AppText variant="meta" mono muted style={styles.meta}>
+        <AppText variant="monoSm" tone="faint" style={styles.meta}>
           {metaLine(material)}
         </AppText>
       </View>
 
-      <Chevron direction="forward" />
+      <View style={styles.chevron}>
+        <Chevron direction="forward" />
+      </View>
     </Pressable>
   );
 }
@@ -49,17 +58,26 @@ export function MaterialRow({ material, onPress }: Props) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: rowDirection,
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.xl,
+    alignItems: 'flex-start',
+    gap: spacing.xl,
+    paddingVertical: spacing.row,
+  },
+  /** מרכז השורה של monoLg (22) מול מרכז השורה של subheading (26) */
+  index: {
+    marginTop: 2,
+  },
+  /** חצי גובה החץ מול מרכז שורת הכותרת */
+  chevron: {
+    marginTop: 8,
   },
   pressed: {
-    backgroundColor: colors.rule,
+    backgroundColor: colors.surfaceSunk,
+    borderRadius: radius.sm,
   },
   text: {
     flex: 1,
   },
   meta: {
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
 });
