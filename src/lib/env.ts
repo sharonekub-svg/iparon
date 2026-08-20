@@ -1,0 +1,38 @@
+/**
+ * משתני הסביבה הציבוריים, מאומתים בנקודת השימוש.
+ *
+ * הקריאה עצלה בכוונה: `next build` מרנדר מראש דפים שלא נוגעים ב-Supabase,
+ * ובנייה לא צריכה ליפול רק כי אין עדיין `.env.local`. מי שכן צריך את
+ * הערכים מקבל שגיאה ברורה בזמן ריצה במקום `undefined` שמתגלגל הלאה.
+ */
+
+function required(name: string, value: string | undefined): string {
+  if (!value || !value.trim()) {
+    throw new Error(`חסר משתנה סביבה: ${name}. ראה .env.example והעתק ל-.env.local.`);
+  }
+  return value;
+}
+
+export function supabaseUrl(): string {
+  return required('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
+}
+
+export function supabasePublishableKey(): string {
+  return required(
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  );
+}
+
+/**
+ * מפתח service role. עוקף RLS, ולכן אסור לו לצאת מהשרת.
+ * הבדיקה כאן היא רשת ביטחון: אם מישהו ייבא את זה לקוד לקוח,
+ * ה-bundle של הדפדפן לא מכיל את המשתנה והקריאה תיפול מיד.
+ */
+export function supabaseServiceRoleKey(): string {
+  return required('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+export function siteUrl(): string {
+  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+}
