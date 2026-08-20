@@ -33,6 +33,9 @@ function friendlyAuthError(context: string, error: { message: string }): string 
   if (m.includes('rate limit') || m.includes('too many')) {
     return 'יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.';
   }
+  if (m.includes('is invalid') && m.includes('email')) {
+    return 'כתובת האימייל לא נראית תקינה';
+  }
   if (m.includes('weak password')) {
     return 'הסיסמה חלשה מדי. נסה סיסמה ארוכה יותר.';
   }
