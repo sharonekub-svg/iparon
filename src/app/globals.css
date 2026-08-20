@@ -1,0 +1,125 @@
+@import 'tailwindcss';
+
+/**
+ * מערכת העיצוב.
+ *
+ * הערכים נלקחו מקובץ העיצוב ב-design/ — פלטת הנייר והדיו, סקאלת
+ * הטיפוגרפיה, הרדיוסים. צבע או גודל חדש נכנס לכאן, לא לתוך מסך בודד.
+ *
+ * הטיפוגרפיה מכוילת לעברית: גובה שורה נדיב יותר ממה שנהוג באנגלית,
+ * ובלי אותיות גדולות ההיררכיה כולה נשענת על גודל ומשקל.
+ */
+@theme {
+  /* ── צבע ─────────────────────────────────────────────────────── */
+  /* רקע — לבן־שמנת חם, לא לבן טהור */
+  --color-paper: #fafaf9;
+  --color-surface: #ffffff;
+  /* מילוי נייטרלי: תשובה שנבחרה, הודעת אישור */
+  --color-surface-sunk: #f1f0ec;
+
+  /* כותרות — כמעט־שחור */
+  --color-ink: #111110;
+  --color-ink-body: #4a4844;
+  --color-ink-muted: #6b6963;
+  --color-ink-faint: #9a988f;
+  --color-ink-faintest: #b4b2ac;
+  /* דיו על רקע כהה */
+  --color-on-ink: #fafaf9;
+
+  /* קווים — כמו שורות במחברת */
+  --color-line: rgb(17 17 16 / 0.1);
+  --color-line-strong: rgb(17 17 16 / 0.14);
+  --color-line-input: rgb(17 17 16 / 0.16);
+  --color-line-dashed: rgb(17 17 16 / 0.2);
+  --color-track: #edebe6;
+
+  /* מצבי תשובה — הצבעים היחידים במערכת, ובכוונה */
+  --color-correct: #1a7f5a;
+  --color-correct-soft: #e6f2ec;
+  --color-wrong: #b3261e;
+  --color-wrong-soft: #fbeae9;
+
+  /* ── טיפוגרפיה ───────────────────────────────────────────────── */
+  --font-sans: var(--font-assistant), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --text-display: 2.5rem;
+  --text-display--line-height: 2.6875rem;
+  --text-display--letter-spacing: -0.025em;
+  --text-display--font-weight: 800;
+
+  --text-heading: 1.625rem;
+  --text-heading--line-height: 2.125rem;
+  --text-heading--letter-spacing: -0.005em;
+  --text-heading--font-weight: 700;
+
+  --text-subheading: 1.1875rem;
+  --text-subheading--line-height: 1.625rem;
+  --text-subheading--font-weight: 700;
+
+  --text-lead: 1.1875rem;
+  --text-lead--line-height: 1.9375rem;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.625rem;
+
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.625rem;
+
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.375rem;
+  --text-label--font-weight: 600;
+
+  --text-meta: 0.8125rem;
+  --text-meta--line-height: 1.25rem;
+  --text-meta--letter-spacing: 0.02em;
+
+  /* ── צורה ────────────────────────────────────────────────────── */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+}
+
+html {
+  /* גלילה חלקה בין עוגנים בדף הנחיתה, אבל לא למי שביקש פחות תנועה */
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * מבודד מספר בתוך טקסט עברי.
+ *
+ * עוטף **מספר בלבד** — אף פעם לא מחרוזת מעורבת. על "6 עמודים" זה כופה
+ * direction: ltr על כל המחרוזת, ואז קורא עברי רואה "עמודים" לפני "6".
+ * מחרוזת מעורבת שמתחילה בספרה כבר מסתדרת נכון לבד בהקשר RTL.
+ */
+.num {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* טבעת פוקוס אחידה — נגישות מקלדת היא לא תוספת */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
