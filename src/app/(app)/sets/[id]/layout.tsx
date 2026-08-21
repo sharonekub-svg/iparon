@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { StudyTabs } from '@/components/study/StudyTabs';
+import { getEntitlements } from '@/lib/plans';
 import { getStudySet } from '@/lib/study';
 
 export default async function StudySetLayout({
@@ -9,7 +10,7 @@ export default async function StudySetLayout({
   params,
 }: LayoutProps<'/sets/[id]'>) {
   const { id } = await params;
-  const set = await getStudySet(id);
+  const [set, entitlements] = await Promise.all([getStudySet(id), getEntitlements()]);
 
   if (!set) notFound();
 
@@ -25,7 +26,7 @@ export default async function StudySetLayout({
         <span className="num">{set.page_count}</span> עמודים
       </p>
 
-      <StudyTabs id={id} />
+      <StudyTabs id={id} examsLocked={!entitlements.examsEnabled} />
 
       <div className="mt-6">{children}</div>
     </>

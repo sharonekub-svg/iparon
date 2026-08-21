@@ -129,3 +129,51 @@ npx supabase secrets set LAMDAI_MODEL=claude-sonnet-5
 הפריסה הראשונה נעשתה דרך ה-MCP, והבנדל שעלה זהה פונקציונלית לקוד
 שבריפו אבל עם פחות הערות. מקור האמת הוא הריפו; `npx supabase functions
 deploy process-material` מסנכרן את השניים.
+
+## מסלולים (freemium)
+
+|                        | חינמי          | מורחב     |
+| ---------------------- | -------------- | --------- |
+| חומרים                 | **1 בסך הכול** | ללא הגבלה |
+| העלאות בחודש           | 1              | 15        |
+| סיכום, כרטיסיות, תרגול | ✅             | ✅        |
+| **מבחני תרגול**        | ❌             | ✅        |
+
+הגבולות בטבלה ולא בקוד. שינוי מכסה הוא `UPDATE` אחד, בלי פריסה:
+
+```sql
+update plans set max_uploads_per_month = 25 where tier = 'premium';
+update plans set max_study_sets_total  = 2  where tier = 'free';
+```
+
+### לשדרג משתמש ידנית
+
+```sql
+update profiles set plan = 'premium'
+where id = (select id from auth.users where email = 'someone@example.com');
+
+-- מנוי לחודש, שפג מעצמו:
+update profiles set plan = 'premium', plan_expires_at = now() + interval '30 days'
+where id = '...';
+```
+
+`effective_plan()` מחזירה `free` כש-`plan_expires_at` עבר, ולכן פקיעה
+לא דורשת עבודת רקע שצריך לתחזק.
+
+### איפה זה נאכף
+
+**לא בממשק.** הממשק רק מציג מנעול.
+
+| גבול        | איפה נאכף                                                                      |
+| ----------- | ------------------------------------------------------------------------------ |
+| מספר חומרים | טריגר `study_sets_enforce_quota` על ה-INSERT                                   |
+| מבחנים      | בדיקה בתוך `start_exam`                                                        |
+| שיוך למסלול | ל-`authenticated` יש `update(display_name)` בלבד — תלמיד לא יכול לשדרג את עצמו |
+
+אומת בקריאה ישירה שעוקפת את הממשק: `start_exam` למשתמש חינמי החזירה
+`403 מבחני תרגול פתוחים במסלול המורחב`, ו-`insert into study_sets`
+נדחה עם הסיבה בעברית.
+
+**מה שאין, ובכוונה:** אין טופס תשלום. חיבור לספק תשלומים עוד לא קיים,
+וטופס שנראה כמו תשלום ולא גובה הוא הטעיה. מסך `/premium` מסביר מה כלול
+ואומר במפורש שהתשלום לא פתוח.

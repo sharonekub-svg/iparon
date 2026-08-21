@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { createServerSupabase } from '@/lib/supabase/server';
+import { getEntitlements } from '@/lib/plans';
 import { listStudySets, statusLabels } from '@/lib/study';
 
 export const metadata = { title: 'החומרים שלי' };
@@ -20,13 +21,18 @@ export default async function DashboardPage() {
     .eq('id', user!.id)
     .maybeSingle();
 
-  const sets = await listStudySets();
+  const [sets, entitlements] = await Promise.all([listStudySets(), getEntitlements()]);
   const greeting = profile?.display_name ? `שלום ${profile.display_name}` : 'שלום';
 
   return (
     <>
       <div className="flex items-baseline justify-between gap-4">
         <h1 className="text-heading text-ink">{greeting} 👋</h1>
+        {entitlements.tier === 'free' ? (
+          <Link href="/premium" className="text-meta text-ink-faint hover:text-ink">
+            שדרוג
+          </Link>
+        ) : null}
       </div>
 
       <Link

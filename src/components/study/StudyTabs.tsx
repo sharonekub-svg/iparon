@@ -10,7 +10,7 @@ const tabs = [
   { slug: '/exam', label: 'מבחן' },
 ] as const;
 
-export function StudyTabs({ id }: { id: string }) {
+export function StudyTabs({ id, examsLocked }: { id: string; examsLocked: boolean }) {
   const pathname = usePathname();
   const base = `/sets/${id}`;
 
@@ -24,6 +24,11 @@ export function StudyTabs({ id }: { id: string }) {
           <Link
             key={tab.slug}
             href={href}
+            aria-label={
+              tab.slug === '/exam' && examsLocked
+                ? `${tab.label} — במסלול המורחב`
+                : undefined
+            }
             aria-current={active ? 'page' : undefined}
             className={`text-label -mb-px border-b-2 px-3.5 py-2.5 transition-colors ${
               active
@@ -32,6 +37,11 @@ export function StudyTabs({ id }: { id: string }) {
             }`}
           >
             {tab.label}
+            {tab.slug === '/exam' && examsLocked ? (
+              <span aria-hidden="true" className="text-ink-faintest ms-1">
+                🔒
+              </span>
+            ) : null}
           </Link>
         );
       })}
