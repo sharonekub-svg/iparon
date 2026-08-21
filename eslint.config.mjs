@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     'next-env.d.ts',
     // קובץ העיצוב מ-Claude Design ו-runtime שלו. קוד מיובא, לא נערך כאן.
     'design/**',
+    // קוד Deno, לא קוד האתר. נבדק ב-deno check.
+    'supabase/functions/**',
   ]),
 ]);
 
