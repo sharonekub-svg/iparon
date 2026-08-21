@@ -7,6 +7,7 @@ const tabs = [
   { slug: '', label: 'סיכום' },
   { slug: '/flashcards', label: 'כרטיסיות' },
   { slug: '/quiz', label: 'תרגול' },
+  { slug: '/exam', label: 'מבחן' },
 ] as const;
 
 export function StudyTabs({ id }: { id: string }) {

@@ -150,3 +150,135 @@ export async function getTopics(studySetId: string): Promise<string[]> {
     .order('order_index');
   return (data ?? []).map((t) => t.name as string);
 }
+
+export type ExamScope = {
+  /** null = מבחן משותף על כל החומר */
+  topicId: string | null;
+  name: string;
+  available: number;
+};
+
+/**
+ * על מה אפשר להיבחן, וכמה שאלות יש לכל נושא.
+ *
+ * הספירה חשובה למסך: אין טעם להציע מבחן של 20 שאלות על נושא שיש בו 6.
+ */
+export async function getExamScopes(studySetId: string): Promise<ExamScope[]> {
+  const supabase = await createServerSupabase();
+
+  const [{ data: questions }, { data: topics }] = await Promise.all([
+    supabase
+      .from('questions')
+      .select('topic_id')
+      .eq('study_set_id', studySetId)
+      .eq('kind', 'exam'),
+    supabase
+      .from('topics')
+      .select('id, name')
+      .eq('study_set_id', studySetId)
+      .order('order_index'),
+  ]);
+
+  const rows = questions ?? [];
+  if (rows.length === 0) return [];
+
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    if (row.topic_id) counts.set(row.topic_id, (counts.get(row.topic_id) ?? 0) + 1);
+  }
+
+  const perTopic = (topics ?? [])
+    .map((topic) => ({
+      topicId: topic.id as string,
+      name: topic.name as string,
+      available: counts.get(topic.id as string) ?? 0,
+    }))
+    .filter((scope) => scope.available > 0);
+
+  // המשותף ראשון: זה מה שרוב התלמידים ירצו לפני מבחן
+  return [{ topicId: null, name: 'כל החומר', available: rows.length }, ...perTopic];
+}
+
+export type AttemptResult = {
+  score: number;
+  questionCount: number;
+  finishedAt: string | null;
+  answers: {
+    questionId: string;
+    stem: string;
+    options: string[];
+    correctIndex: number;
+    selectedIndex: number | null;
+    isCorrect: boolean;
+    explanation: string | null;
+    topic: string | null;
+  }[];
+};
+
+export async function getAttemptResult(attemptId: string): Promise<AttemptResult | null> {
+  const supabase = await createServerSupabase();
+
+  const { data: attempt } = await supabase
+    .from('attempts')
+    .select('score, question_count, finished_at')
+    .eq('id', attemptId)
+    .maybeSingle();
+
+  if (!attempt) return null;
+
+  const { data: rows } = await supabase
+    .from('attempt_answers')
+    .select(
+      'question_id, selected_index, is_correct, questions(stem, options, correct_index, explanation, topics(name))',
+    )
+    .eq('attempt_id', attemptId);
+
+  return {
+    score: attempt.score ?? 0,
+    questionCount: attempt.question_count as number,
+    finishedAt: attempt.finished_at as string | null,
+    answers: (rows ?? []).map((row) => {
+      const q = row.questions as unknown as {
+        stem: string;
+        options: string[];
+        correct_index: number;
+        explanation: string | null;
+        topics: { name: string } | null;
+      };
+      return {
+        questionId: row.question_id as string,
+        stem: q.stem,
+        options: q.options,
+        correctIndex: q.correct_index,
+        selectedIndex: row.selected_index as number | null,
+        isCorrect: row.is_correct as boolean,
+        explanation: q.explanation,
+        topic: q.topics?.name ?? null,
+      };
+    }),
+  };
+}
+
+/** נושאים חזקים וחלשים בניסיון אחד, לפי אחוז נכונות */
+export function topicBreakdown(result: AttemptResult) {
+  const byTopic = new Map<string, { correct: number; total: number }>();
+  for (const answer of result.answers) {
+    if (!answer.topic) continue;
+    const entry = byTopic.get(answer.topic) ?? { correct: 0, total: 0 };
+    entry.total += 1;
+    if (answer.isCorrect) entry.correct += 1;
+    byTopic.set(answer.topic, entry);
+  }
+
+  const scored = [...byTopic.entries()].map(([name, e]) => ({
+    name,
+    percent: Math.round((e.correct / e.total) * 100),
+    correct: e.correct,
+    total: e.total,
+  }));
+
+  return {
+    strong: scored.filter((t) => t.percent >= 70).sort((a, b) => b.percent - a.percent),
+    weak: scored.filter((t) => t.percent < 70).sort((a, b) => a.percent - b.percent),
+  };
+}

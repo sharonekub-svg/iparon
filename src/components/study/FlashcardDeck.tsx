@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { createBrowserSupabase } from '@/lib/supabase/browser';
+import { rateFlashcard } from '@/app/(app)/sets/[id]/actions';
 import type { Flashcard } from '@/lib/study';
 
 /**
@@ -21,21 +21,19 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const card = cards[index];
 
   async function rate(value: number) {
-    // נשמר ברקע. תלמיד שמדפדף מהר לא צריך לחכות לרשת בין כרטיסיות,
-    // ודירוג שאבד הוא הפסד זניח מול כרטיסייה שנתקעת.
-    const supabase = createBrowserSupabase();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      void supabase
-        .from('flashcard_reviews')
-        .insert({ user_id: user.id, flashcard_id: card.id, rating: value });
+    // מחכים לתוצאה. הגרסה הקודמת שלחה ושכחה, והמסך התקדם גם כשהכתיבה
+    // נפלה — כלומר מאסטרי שנראה עובד ולא נשמר כלום.
+    const result = await rateFlashcard(card.id, value);
+    if (!result.ok) {
+      setError(result.error);
+      return;
     }
+    setError(null);
 
     if (index + 1 >= cards.length) {
       setDone(true);
@@ -69,9 +67,8 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
 
   return (
     <div>
-      <p className="text-meta text-ink-faint font-mono">
-        <span className="num">{index + 1}</span> /{' '}
-        <span className="num">{cards.length}</span>
+      <p className="num text-meta text-ink-faint font-mono">
+        {index + 1} / {cards.length}
       </p>
 
       <button
@@ -87,6 +84,15 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
           <p className="text-meta text-ink-faint">הקש כדי לראות את התשובה</p>
         )}
       </button>
+
+      {error ? (
+        <p
+          role="alert"
+          className="text-small bg-wrong-soft text-wrong mt-4 rounded-md px-4 py-3"
+        >
+          {error}
+        </p>
+      ) : null}
 
       {revealed ? (
         <div className="mt-4 flex gap-2">
