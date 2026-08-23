@@ -25,6 +25,27 @@ npm run verify     # typecheck + lint + format + build
 בשלב הזה האתר רץ בלי משתני סביבה. משהתחברות תיכנס, יידרש `.env.local`
 לפי [`.env.example`](.env.example).
 
+## פריסה
+
+האתר רץ בוורסל מהענף `claude/lamdai-hebrew-education-mvp-db3q2x`, שהוא
+ברירת המחדל של הריפו. הבנייה נבדקה **בלי שום משתנה סביבה**, כדי שהפריסה
+הראשונה לא תיפול.
+
+בוורסל צריך שניים בלבד:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://ecokutjdqppemewxyvat.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+NEXT_PUBLIC_SITE_URL=https://<הדומיין>
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` **לא נדרש ולא צריך להיות שם** — הוא עוקף RLS,
+ואין בקוד האתר שום קריאה שמשתמשת בו.
+
+אחרי הפריסה הראשונה, להוסיף את הדומיין ב-Supabase תחת
+**Authentication → URL Configuration** — אחרת ההתחברות מפנה חזרה
+ל-localhost.
+
 ## מבנה
 
 ```
