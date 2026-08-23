@@ -78,10 +78,10 @@ export default function LandingPage() {
               <ArrowStart />
             </Link>
             <Link
-              href="/login"
+              href="/demo"
               className="border-line-input text-label text-ink hover:bg-surface-sunk inline-flex items-center justify-center rounded-md border px-6 py-3.5 transition-colors"
             >
-              כניסה
+              נסה בלי הרשמה
             </Link>
           </div>
 
@@ -94,7 +94,10 @@ export default function LandingPage() {
             כך נראית התוצאה
           </h2>
 
-          <div className="border-line-strong bg-surface overflow-hidden rounded-xl border">
+          <Link
+            href="/demo"
+            className="border-line-strong bg-surface hover:border-ink block overflow-hidden rounded-xl border transition-colors"
+          >
             <div className="border-line flex items-center justify-between border-b px-5 py-3.5">
               <span className="text-label text-ink">ביולוגיה — מערכת העיכול</span>
               <span className="text-meta text-ink-faint font-mono">6 עמודים</span>
@@ -121,10 +124,10 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-          </div>
+          </Link>
 
           <p className="text-meta text-ink-faint mt-3">
-            כך נראה חומר אחרי עיבוד. התוכן בדוגמה להמחשה.
+            כך נראה חומר אחרי עיבוד. הקש כדי להתנסות בעצמך.
           </p>
         </section>
 

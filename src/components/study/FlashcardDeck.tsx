@@ -17,7 +17,14 @@ const ratings = [
   { value: 2, label: 'קל' },
 ] as const;
 
-export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
+export function FlashcardDeck({
+  cards,
+  persistRatings = true,
+}: {
+  cards: Flashcard[];
+  /** בדמו הציבורי אין משתמש מחובר, ולכן אין מה לשמור. */
+  persistRatings?: boolean;
+}) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [done, setDone] = useState(false);
@@ -28,10 +35,12 @@ export function FlashcardDeck({ cards }: { cards: Flashcard[] }) {
   async function rate(value: number) {
     // מחכים לתוצאה. הגרסה הקודמת שלחה ושכחה, והמסך התקדם גם כשהכתיבה
     // נפלה — כלומר מאסטרי שנראה עובד ולא נשמר כלום.
-    const result = await rateFlashcard(card.id, value);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    if (persistRatings) {
+      const result = await rateFlashcard(card.id, value);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
     }
     setError(null);
 
