@@ -1,5 +1,8 @@
 import Link from 'next/link';
 
+import { DemoSkip } from '@/components/ui/DemoSkip';
+import { demoLoginEnabled } from '@/lib/env';
+
 import { LoginForm } from './LoginForm';
 
 export const metadata = { title: 'כניסה' };
@@ -13,6 +16,8 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
       <p className="text-small text-ink-body mt-2">טוב לראות אותך שוב.</p>
 
       <LoginForm next={typeof next === 'string' ? next : undefined} />
+
+      {demoLoginEnabled() ? <DemoSkip /> : null}
 
       <p className="text-small text-ink-muted mt-8">
         אין לך עדיין חשבון?{' '}

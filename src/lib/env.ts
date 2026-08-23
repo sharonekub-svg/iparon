@@ -36,3 +36,14 @@ export function supabaseServiceRoleKey(): string {
 export function siteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
 }
+
+/**
+ * כפתור "דלג" למסכי ההרשמה והכניסה.
+ *
+ * דלוק כברירת מחדל בזמן הבטא, כדי שאפשר יהיה לראות את המוצר בלי
+ * לפתוח חשבון. כיבוי: NEXT_PUBLIC_DEMO_LOGIN=0 — משתנה סביבה, בלי
+ * שינוי קוד ובלי פריסה של גרסה אחרת.
+ */
+export function demoLoginEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_DEMO_LOGIN !== '0';
+}

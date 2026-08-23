@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 
+import { demoLoginEnabled } from '@/lib/env';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { credentialsSchema, safeRedirectPath, signUpSchema } from '@/lib/validation/auth';
 
@@ -96,6 +97,34 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   return {
     notice: 'שלחנו קישור אישור לאימייל שלך. אחרי הלחיצה עליו אפשר להתחבר.',
   };
+}
+
+/**
+ * כניסה מהירה לחשבון הדגמה — כפתור "דלג" במסכי ההרשמה והכניסה.
+ *
+ * הפרטים כאן ולא בדפדפן: זו פעולת שרת, והם לא נארזים ל-bundle.
+ *
+ * ⚠️ זה חשבון **משותף**. כל מי שמגיע לאתר ולוחץ רואה את אותם נתונים.
+ * לבטא זה בסדר; לפני שתלמידים אמיתיים נכנסים צריך לכבות את זה —
+ * NEXT_PUBLIC_DEMO_LOGIN=0 בוורסל, בלי שינוי קוד.
+ */
+export async function signInAsDemo(): Promise<AuthState> {
+  if (!demoLoginEnabled()) {
+    return { error: 'הכניסה המהירה כבויה' };
+  }
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: 'demo@gmail.com',
+    password: 'correct-horse-9',
+  });
+
+  if (error) {
+    console.error('[auth:demo]', error.message);
+    return { error: 'הכניסה לחשבון ההדגמה נכשלה' };
+  }
+
+  redirect('/dashboard');
 }
 
 export async function signOut(): Promise<void> {
