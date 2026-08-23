@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import type { Question } from '@/lib/study';
 
 /**
@@ -47,6 +48,13 @@ export function Quiz({ questions }: { questions: Question[] }) {
           ענית נכון על <span className="num">{correctCount}</span> מתוך{' '}
           <span className="num">{questions.length}</span> שאלות.
         </p>
+        <p className="text-meta text-ink-faint mt-3">
+          {score === 100
+            ? 'החומר הזה יושב.'
+            : score >= 70
+              ? 'קרוב. עוד סיבוב על הכרטיסיות יסגור את הפערים.'
+              : 'שווה לחזור על הסיכום ועל הכרטיסיות לפני סיבוב נוסף.'}
+        </p>
         <button
           type="button"
           onClick={() => {
@@ -65,10 +73,19 @@ export function Quiz({ questions }: { questions: Question[] }) {
 
   return (
     <div>
-      <p className="text-meta text-ink-faint font-mono">
-        שאלה <span className="num">{index + 1}</span> מתוך{' '}
-        <span className="num">{questions.length}</span>
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-meta text-ink-faint font-mono">
+          שאלה <span className="num">{index + 1}</span> מתוך{' '}
+          <span className="num">{questions.length}</span>
+        </p>
+        <p className="text-meta text-ink-faint">
+          נכונות <span className="num">{correctCount}</span>
+        </p>
+      </div>
+
+      <div className="mt-2">
+        <ProgressBar value={index} max={questions.length} />
+      </div>
 
       <h2 className="text-subheading text-ink mt-3">{question.stem}</h2>
 

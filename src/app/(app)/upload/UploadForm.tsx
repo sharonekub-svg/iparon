@@ -1,29 +1,68 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { prepareUpload, startProcessing } from './actions';
 
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import { createBrowserSupabase } from '@/lib/supabase/browser';
 import { describeRejection, uploadLimits } from '@/lib/validation/upload';
 
 type Phase = 'idle' | 'uploading' | 'starting';
 
+/** "0.0MB" על קובץ של 40KB נראה כמו באג. */
+function formatSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+}
+
 export function UploadForm() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
+  const [dragging, setDragging] = useState(false);
   const [phase, setPhase] = useState<Phase>('idle');
   const [uploaded, setUploaded] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  function pick(list: FileList | null) {
-    if (!list) return;
-    const chosen = Array.from(list);
-    const rejection = describeRejection(chosen);
-    setError(rejection);
-    setFiles(rejection ? [] : chosen);
+  // נגזר מהקבצים ולא מוחזק ב-state: setState בתוך effect גורר רינדור
+  // מדורג, וכאן אין שום דבר שצריך להיזכר בין רינדורים.
+  const previews = useMemo(() => {
+    const urls: Record<string, string> = {};
+    for (const file of files) {
+      if (file.type.startsWith('image/')) {
+        urls[`${file.name}:${file.size}`] = URL.createObjectURL(file);
+      }
+    }
+    return urls;
+  }, [files]);
+
+  // object URL תופס זיכרון עד שמשחררים אותו במפורש
+  useEffect(() => {
+    return () => Object.values(previews).forEach(URL.revokeObjectURL);
+  }, [previews]);
+
+  function accept(incoming: File[]) {
+    // מוסיפים למה שכבר נבחר, ולא מחליפים: צילום של כמה עמודים נעשה
+    // לרוב בכמה פעימות.
+    const merged = [...files, ...incoming].filter(
+      (file, i, all) =>
+        all.findIndex((f) => f.name === file.name && f.size === file.size) === i,
+    );
+
+    const rejection = describeRejection(merged);
+    if (rejection) {
+      setError(rejection);
+      return;
+    }
+    setError(null);
+    setFiles(merged);
+  }
+
+  function remove(target: File) {
+    setFiles(files.filter((f) => !(f.name === target.name && f.size === target.size)));
+    setError(null);
   }
 
   async function submit() {
@@ -79,39 +118,105 @@ export function UploadForm() {
 
   return (
     <div className="mt-8 flex flex-col gap-5">
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="border-line-dashed hover:bg-surface-sunk flex flex-col items-center gap-2 rounded-lg border border-dashed px-5 py-10 transition-colors disabled:opacity-50"
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          accept(Array.from(e.dataTransfer.files));
+        }}
       >
-        <span className="text-label text-ink">בחר קובץ או צלם דף</span>
-        <span className="text-meta text-ink-faint">
-          עד <span className="num">{uploadLimits.maxFiles}</span> עמודים · PDF, JPG או PNG
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className={`flex w-full flex-col items-center gap-2 rounded-lg border border-dashed px-5 py-10 transition-colors disabled:opacity-50 ${
+            dragging
+              ? 'border-ink bg-surface-sunk'
+              : 'border-line-dashed hover:bg-surface-sunk'
+          }`}
+        >
+          <span className="text-label text-ink">
+            {files.length > 0 ? 'הוסף עוד עמודים' : 'בחר קובץ או צלם דף'}
+          </span>
+          <span className="text-meta text-ink-faint">
+            עד <span className="num">{uploadLimits.maxFiles}</span> עמודים · PDF, JPG או
+            PNG
+          </span>
+        </button>
+      </div>
 
       <input
         ref={inputRef}
         type="file"
         accept="application/pdf,image/jpeg,image/png"
         multiple
-        // capture פותח את המצלמה ישירות בטלפון
         capture="environment"
         className="sr-only"
-        onChange={(e) => pick(e.target.files)}
+        onChange={(e) => {
+          accept(Array.from(e.target.files ?? []));
+          // מאפשר לבחור שוב את אותו קובץ אחרי הסרה
+          e.target.value = '';
+        }}
       />
 
       {files.length > 0 ? (
-        <ul className="border-line divide-line divide-y rounded-md border">
-          {files.map((file) => (
-            <li key={file.name} className="flex items-center justify-between px-4 py-3">
-              <span className="text-small text-ink truncate">{file.name}</span>
-              <span className="num text-meta text-ink-faint font-mono">
-                {(file.size / 1024 / 1024).toFixed(1)}MB
-              </span>
-            </li>
-          ))}
+        <ul className="flex flex-col gap-2">
+          {files.map((file) => {
+            const key = `${file.name}:${file.size}`;
+            const preview = previews[key];
+
+            return (
+              <li
+                key={key}
+                className="border-line bg-surface flex items-center gap-3 rounded-md border p-2.5"
+              >
+                {preview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={preview}
+                    alt=""
+                    className="border-line size-12 shrink-0 rounded-sm border object-cover"
+                  />
+                ) : (
+                  <span className="bg-surface-sunk text-meta text-ink-muted flex size-12 shrink-0 items-center justify-center rounded-sm font-mono">
+                    PDF
+                  </span>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-small text-ink truncate">{file.name}</p>
+                  <p className="num text-meta text-ink-faint font-mono">
+                    {formatSize(file.size)}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => remove(file)}
+                  disabled={busy}
+                  aria-label={`הסר את ${file.name}`}
+                  className="text-ink-faint hover:text-ink hover:bg-surface-sunk flex size-9 shrink-0 items-center justify-center rounded-md transition-colors disabled:opacity-40"
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    aria-hidden="true"
+                    className="size-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                  >
+                    <path d="M4 4l8 8M12 4l-8 8" />
+                  </svg>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
 
@@ -125,10 +230,13 @@ export function UploadForm() {
       ) : null}
 
       {phase === 'uploading' ? (
-        <p className="text-small text-ink-body">
-          מעלה <span className="num">{uploaded}</span> מתוך{' '}
-          <span className="num">{files.length}</span>...
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-small text-ink-body">
+            מעלה <span className="num">{uploaded}</span> מתוך{' '}
+            <span className="num">{files.length}</span>...
+          </p>
+          <ProgressBar value={uploaded} max={files.length} />
+        </div>
       ) : null}
 
       <button
@@ -141,7 +249,9 @@ export function UploadForm() {
           ? 'מתחיל עיבוד...'
           : phase === 'uploading'
             ? 'מעלה...'
-            : 'העלה'}
+            : files.length > 1
+              ? `העלה ${files.length} עמודים`
+              : 'העלה'}
       </button>
     </div>
   );

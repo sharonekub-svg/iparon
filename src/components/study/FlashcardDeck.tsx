@@ -3,18 +3,20 @@
 import { useState } from 'react';
 
 import { rateFlashcard } from '@/app/(app)/sets/[id]/actions';
+import { IconArrow } from '@/components/ui/IconArrow';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import type { Flashcard } from '@/lib/study';
 
 /**
  * כרטיסייה אחת במסך. הקשה חושפת את התשובה, ואז התלמיד מדרג.
- * הדירוג נשמר ומזין את המאסטרי. בלי חזרות מרווחות בגרסה הזאת —
- * הספק מבקש במפורש לא לבנות אלגוריתם מסובך ב-V1.
+ * הדירוג נשמר ומזין את חישוב השליטה. בלי חזרות מרווחות — הספק
+ * מבקש במפורש לא לבנות אלגוריתם מסובך ב-V1.
  */
 
-const ratings = [
+const RATINGS = [
   { value: 0, label: 'לא ידעתי' },
-  { value: 1, label: 'כמעט ידעתי' },
-  { value: 2, label: 'קל' },
+  { value: 1, label: 'כמעט' },
+  { value: 2, label: 'ידעתי' },
 ] as const;
 
 export function FlashcardDeck({
@@ -27,45 +29,75 @@ export function FlashcardDeck({
 }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** הדירוגים בסבב הנוכחי, לסיכום בסוף */
+  const [given, setGiven] = useState<Record<string, number>>({});
 
   const card = cards[index];
+  const done = index >= cards.length;
 
   async function rate(value: number) {
-    // מחכים לתוצאה. הגרסה הקודמת שלחה ושכחה, והמסך התקדם גם כשהכתיבה
-    // נפלה — כלומר מאסטרי שנראה עובד ולא נשמר כלום.
+    setSaving(true);
+    setError(null);
+
     if (persistRatings) {
       const result = await rateFlashcard(card.id, value);
       if (!result.ok) {
         setError(result.error);
+        setSaving(false);
         return;
       }
     }
-    setError(null);
 
-    if (index + 1 >= cards.length) {
-      setDone(true);
-    } else {
-      setIndex(index + 1);
-      setRevealed(false);
-    }
+    setGiven((prev) => ({ ...prev, [card.id]: value }));
+    setIndex(index + 1);
+    setRevealed(false);
+    setSaving(false);
+  }
+
+  function back() {
+    if (index === 0) return;
+    setIndex(index - 1);
+    // חוזרים לכרטיסייה קודמת עם התשובה חשופה — היא כבר נראתה
+    setRevealed(true);
+    setError(null);
+  }
+
+  function restart() {
+    setIndex(0);
+    setRevealed(false);
+    setGiven({});
+    setError(null);
   }
 
   if (done) {
+    const counts = { 0: 0, 1: 0, 2: 0 } as Record<number, number>;
+    for (const value of Object.values(given)) counts[value] += 1;
+    const shaky = counts[0] + counts[1];
+
     return (
       <div className="border-line rounded-lg border px-5 py-8 text-center">
-        <p className="text-subheading text-ink">סיימת את הכרטיסיות</p>
-        <p className="text-small text-ink-body mt-2">
-          עברת על <span className="num">{cards.length}</span> כרטיסיות.
+        <p className="text-subheading text-ink">סיימת את הסיבוב</p>
+
+        <div className="mt-5 flex justify-center gap-6">
+          {RATINGS.map((rating) => (
+            <div key={rating.value}>
+              <p className="num text-heading text-ink">{counts[rating.value]}</p>
+              <p className="text-meta text-ink-faint mt-0.5">{rating.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-small text-ink-body mt-5">
+          {shaky === 0
+            ? 'ידעת הכול. אפשר לעבור לתרגול.'
+            : `${shaky === 1 ? 'כרטיסייה אחת' : `${shaky} כרטיסיות`} עוד לא יושבות. עוד סיבוב יעזור.`}
         </p>
+
         <button
           type="button"
-          onClick={() => {
-            setIndex(0);
-            setRevealed(false);
-            setDone(false);
-          }}
+          onClick={restart}
           className="border-line-input text-label text-ink hover:bg-surface-sunk mt-5 rounded-md border px-5 py-2.5"
         >
           עוד סיבוב
@@ -76,15 +108,30 @@ export function FlashcardDeck({
 
   return (
     <div>
-      <p className="num text-meta text-ink-faint font-mono">
-        {index + 1} / {cards.length}
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="num text-meta text-ink-faint font-mono">
+          {index + 1} / {cards.length}
+        </p>
+        <button
+          type="button"
+          onClick={back}
+          disabled={index === 0}
+          className="text-meta text-ink-faint hover:text-ink inline-flex items-center gap-1 transition-colors disabled:opacity-0"
+        >
+          <IconArrow direction="back" className="size-3.5" />
+          הקודמת
+        </button>
+      </div>
+
+      <div className="mt-2">
+        <ProgressBar value={index} max={cards.length} />
+      </div>
 
       <button
         type="button"
         onClick={() => setRevealed(true)}
         disabled={revealed}
-        className="border-line-strong bg-surface mt-3 flex min-h-52 w-full flex-col justify-center gap-4 rounded-xl border px-6 py-8 text-start"
+        className="border-line-strong bg-surface mt-5 flex min-h-56 w-full flex-col justify-center gap-4 rounded-xl border px-6 py-8 text-start disabled:cursor-default"
       >
         <p className="text-subheading text-ink">{card.front}</p>
         {revealed ? (
@@ -105,12 +152,13 @@ export function FlashcardDeck({
 
       {revealed ? (
         <div className="mt-4 flex gap-2">
-          {ratings.map((rating) => (
+          {RATINGS.map((rating) => (
             <button
               key={rating.value}
               type="button"
+              disabled={saving}
               onClick={() => rate(rating.value)}
-              className="border-line-input text-label text-ink hover:bg-surface-sunk flex-1 rounded-md border px-2 py-3 transition-colors"
+              className="border-line-input text-label text-ink hover:bg-surface-sunk flex-1 rounded-md border px-2 py-3.5 transition-colors disabled:opacity-50"
             >
               {rating.label}
             </button>
