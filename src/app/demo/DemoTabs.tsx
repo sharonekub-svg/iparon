@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { FlashcardDeck } from '@/components/study/FlashcardDeck';
 import { SummaryView } from '@/components/study/SummaryView';
-import { Quiz } from '@/components/study/Quiz';
+import { QuizSetup } from '@/components/study/QuizSetup';
 import { demoFlashcards, demoQuiz, demoSummary } from '@/lib/demoStudySet';
 
 const TABS = ['סיכום', 'כרטיסיות', 'תרגול'] as const;
@@ -41,7 +41,12 @@ export function DemoTabs() {
         {active === 1 ? (
           <FlashcardDeck key="cards" cards={[...demoFlashcards]} persistRatings={false} />
         ) : null}
-        {active === 2 ? <Quiz key="quiz" questions={[...demoQuiz]} /> : null}
+        {active === 2 ? (
+          <QuizSetup
+            key="quiz"
+            questions={demoQuiz.map((q) => ({ ...q, options: [...q.options] }))}
+          />
+        ) : null}
       </div>
     </>
   );

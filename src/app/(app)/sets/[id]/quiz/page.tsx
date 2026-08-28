@@ -1,4 +1,4 @@
-import { Quiz } from '@/components/study/Quiz';
+import { QuizSetup } from '@/components/study/QuizSetup';
 import { getQuestions } from '@/lib/study';
 
 export default async function QuizPage({ params }: PageProps<'/sets/[id]/quiz'>) {
@@ -9,5 +9,5 @@ export default async function QuizPage({ params }: PageProps<'/sets/[id]/quiz'>)
     return <p className="text-small text-ink-muted">אין עדיין שאלות תרגול לחומר הזה.</p>;
   }
 
-  return <Quiz questions={questions} studySetId={id} />;
+  return <QuizSetup questions={questions} studySetId={id} />;
 }

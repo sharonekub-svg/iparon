@@ -51,16 +51,19 @@ export type StartedExam = {
   questions: { id: string; stem: string; options: string[] }[];
 };
 
+/**
+ * @param topicIds הנושאים שנבחרו. מערך ריק = כל החומר.
+ */
 export async function startExam(
   studySetId: string,
-  topicId: string | null,
+  topicIds: string[],
   count: number,
 ): Promise<ActionResult<StartedExam>> {
   const supabase = await createServerSupabase();
 
   const { data, error } = await supabase.rpc('start_exam', {
     p_study_set_id: studySetId,
-    p_topic_id: topicId,
+    p_topic_ids: topicIds.length > 0 ? topicIds : null,
     p_count: count,
   });
 

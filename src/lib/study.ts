@@ -129,6 +129,8 @@ export type Question = {
   options: string[];
   correct_index: number;
   explanation: string | null;
+  /** שם הנושא, לסינון התרגול לפי היקף. null אם השאלה לא שויכה */
+  topic: string | null;
 };
 
 export async function getQuestions(
@@ -138,11 +140,19 @@ export async function getQuestions(
   const supabase = await createServerSupabase();
   const { data } = await supabase
     .from('questions')
-    .select('id, stem, options, correct_index, explanation')
+    .select('id, stem, options, correct_index, explanation, topics(name)')
     .eq('study_set_id', studySetId)
     .eq('kind', kind)
     .order('order_index');
-  return (data as Question[] | null) ?? [];
+
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    stem: row.stem as string,
+    options: row.options as string[],
+    correct_index: row.correct_index as number,
+    explanation: row.explanation as string | null,
+    topic: (row.topics as unknown as { name: string } | null)?.name ?? null,
+  }));
 }
 
 export async function getTopics(studySetId: string): Promise<string[]> {
@@ -155,19 +165,27 @@ export async function getTopics(studySetId: string): Promise<string[]> {
   return (data ?? []).map((t) => t.name as string);
 }
 
-export type ExamScope = {
-  /** null = מבחן משותף על כל החומר */
-  topicId: string | null;
+export type TopicScope = {
+  topicId: string;
   name: string;
   available: number;
+};
+
+export type ExamScopes = {
+  /** הנושאים שיש להם שאלות, בסדר שבו הם מופיעים בחומר */
+  topics: TopicScope[];
+  /** סך השאלות בכל החומר, כולל שאלות שלא שויכו לנושא */
+  total: number;
 };
 
 /**
  * על מה אפשר להיבחן, וכמה שאלות יש לכל נושא.
  *
  * הספירה חשובה למסך: אין טעם להציע מבחן של 20 שאלות על נושא שיש בו 6.
+ * "כל החומר" אינו פריט ברשימה אלא בחירה של כל הנושאים יחד — כי המבחן
+ * יכול להיות גם על צירוף של שניים מתוך ארבעה.
  */
-export async function getExamScopes(studySetId: string): Promise<ExamScope[]> {
+export async function getExamScopes(studySetId: string): Promise<ExamScopes> {
   const supabase = await createServerSupabase();
 
   const [{ data: questions }, { data: topics }] = await Promise.all([
@@ -184,23 +202,23 @@ export async function getExamScopes(studySetId: string): Promise<ExamScope[]> {
   ]);
 
   const rows = questions ?? [];
-  if (rows.length === 0) return [];
+  if (rows.length === 0) return { topics: [], total: 0 };
 
   const counts = new Map<string, number>();
   for (const row of rows) {
     if (row.topic_id) counts.set(row.topic_id, (counts.get(row.topic_id) ?? 0) + 1);
   }
 
-  const perTopic = (topics ?? [])
-    .map((topic) => ({
-      topicId: topic.id as string,
-      name: topic.name as string,
-      available: counts.get(topic.id as string) ?? 0,
-    }))
-    .filter((scope) => scope.available > 0);
-
-  // המשותף ראשון: זה מה שרוב התלמידים ירצו לפני מבחן
-  return [{ topicId: null, name: 'כל החומר', available: rows.length }, ...perTopic];
+  return {
+    total: rows.length,
+    topics: (topics ?? [])
+      .map((topic) => ({
+        topicId: topic.id as string,
+        name: topic.name as string,
+        available: counts.get(topic.id as string) ?? 0,
+      }))
+      .filter((scope) => scope.available > 0),
+  };
 }
 
 export type AttemptResult = {

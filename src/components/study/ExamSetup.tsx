@@ -6,25 +6,28 @@ import { useState } from 'react';
 import { ExamRunner, type ExamQuestion } from './ExamRunner';
 
 import { startExam } from '@/app/(app)/sets/[id]/actions';
-import type { ExamScope } from '@/lib/study';
+import { ScopePicker } from '@/components/study/ScopePicker';
+import type { ExamScopes } from '@/lib/study';
 
 /**
  * בחירת היקף המבחן ואורכו.
  *
- * ההיקף הוא נושא בודד או כל החומר. אורך המבחן מוצע רק במספרים
- * שקיימים בפועל במאגר — אין טעם להציע 20 שאלות על נושא שיש בו 6.
+ * ההיקף הוא צירוף חופשי של נושאים: נושא אחד, שניים, או כולם. אורך
+ * המבחן מוצע רק במספרים שקיימים בפועל במאגר של ההיקף שנבחר — אין טעם
+ * להציע 20 שאלות על נושא שיש בו 6.
  */
-const LENGTHS = [10, 20, 30] as const;
+const LENGTHS = [10, 20, 30, 40] as const;
 
 export function ExamSetup({
   studySetId,
   scopes,
 }: {
   studySetId: string;
-  scopes: ExamScope[];
+  scopes: ExamScopes;
 }) {
   const router = useRouter();
-  const [scopeIndex, setScopeIndex] = useState(0);
+  // ברירת המחדל היא כל החומר — זה מה שרוב התלמידים ירצו לפני מבחן
+  const [topicIds, setTopicIds] = useState<string[]>(scopes.topics.map((t) => t.topicId));
   const [count, setCount] = useState<number | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,17 +36,22 @@ export function ExamSetup({
     questions: ExamQuestion[];
   } | null>(null);
 
-  const scope = scopes[scopeIndex];
+  const everything = topicIds.length === scopes.topics.length;
+  // כשנבחר הכול נשלח מערך ריק, וכך נכנסות גם שאלות שלא שויכו לנושא
+  const available = everything
+    ? scopes.total
+    : scopes.topics
+        .filter((t) => topicIds.includes(t.topicId))
+        .reduce((sum, t) => sum + t.available, 0);
 
-  // רק אורכים שהמאגר באמת מכיל, ותמיד האפשרות "הכול"
-  const options = LENGTHS.filter((n) => n < scope.available);
-  const effective = count && count <= scope.available ? count : scope.available;
+  const options = LENGTHS.filter((n) => n < available);
+  const effective = count && count <= available ? count : available;
 
   async function start() {
     setStarting(true);
     setError(null);
 
-    const result = await startExam(studySetId, scope.topicId, effective);
+    const result = await startExam(studySetId, everything ? [] : topicIds, effective);
 
     if (!result.ok) {
       setError(result.error);
@@ -67,35 +75,19 @@ export function ExamSetup({
 
   return (
     <div className="flex flex-col gap-8">
-      <section>
-        <h2 className="text-subheading text-ink">על מה להיבחן?</h2>
-        <div className="mt-3 flex flex-col gap-2">
-          {scopes.map((option, i) => {
-            const active = i === scopeIndex;
-            return (
-              <button
-                key={option.topicId ?? 'all'}
-                type="button"
-                onClick={() => {
-                  setScopeIndex(i);
-                  setCount(null);
-                }}
-                aria-pressed={active}
-                className={`flex items-center justify-between rounded-md border px-4 py-3.5 text-start transition-colors ${
-                  active
-                    ? 'border-ink bg-surface-sunk text-ink'
-                    : 'border-line-input text-ink-body hover:bg-surface-sunk'
-                }`}
-              >
-                <span className="text-body">{option.name}</span>
-                <span className="text-meta text-ink-faint font-mono">
-                  <span className="num">{option.available}</span> שאלות
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <ScopePicker
+        title="על מה להיבחן?"
+        items={scopes.topics.map((t) => ({
+          id: t.topicId,
+          name: t.name,
+          available: t.available,
+        }))}
+        selected={topicIds}
+        onChange={(next) => {
+          setTopicIds(next);
+          setCount(null);
+        }}
+      />
 
       <section>
         <h2 className="text-subheading text-ink">כמה שאלות?</h2>
@@ -106,10 +98,10 @@ export function ExamSetup({
               type="button"
               onClick={() => setCount(n)}
               aria-pressed={count === n}
-              className={`text-label min-w-16 rounded-md border px-4 py-3 transition-colors ${
+              className={`text-label tap min-w-16 rounded-xl border px-4 py-3 ${
                 count === n
-                  ? 'border-ink bg-surface-sunk text-ink'
-                  : 'border-line-input text-ink-body hover:bg-surface-sunk'
+                  ? 'border-ink bg-ink text-on-ink'
+                  : 'border-line-input text-ink-body hover:border-ink hover:bg-surface'
               }`}
             >
               <span className="num">{n}</span>
@@ -119,13 +111,13 @@ export function ExamSetup({
             type="button"
             onClick={() => setCount(null)}
             aria-pressed={count === null}
-            className={`text-label rounded-md border px-4 py-3 transition-colors ${
+            className={`text-label tap rounded-xl border px-4 py-3 ${
               count === null
-                ? 'border-ink bg-surface-sunk text-ink'
-                : 'border-line-input text-ink-body hover:bg-surface-sunk'
+                ? 'border-ink bg-ink text-on-ink'
+                : 'border-line-input text-ink-body hover:border-ink hover:bg-surface'
             }`}
           >
-            הכול (<span className="num">{scope.available}</span>)
+            הכול (<span className="num">{available}</span>)
           </button>
         </div>
       </section>
@@ -143,7 +135,7 @@ export function ExamSetup({
         type="button"
         onClick={start}
         disabled={starting}
-        className="bg-ink text-on-ink text-label rounded-md px-6 py-3.5 disabled:opacity-50"
+        className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-4 hover:opacity-90 disabled:opacity-50"
       >
         {starting ? 'רגע...' : 'התחל מבחן'}
       </button>

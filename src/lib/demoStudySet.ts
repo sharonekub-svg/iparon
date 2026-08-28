@@ -120,6 +120,7 @@ export const demoFlashcards = [
 export const demoQuiz = [
   {
     id: 'demo-q1',
+    topic: 'אנזימי עיכול',
     stem: 'היכן מתחיל העיכול הכימי?',
     options: ['בקיבה', 'בפה', 'במעי הדק', 'בוושט'],
     correct_index: 1,
@@ -127,6 +128,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q2',
+    topic: 'אנזימי עיכול',
     stem: 'מה מפעילה חומצת המלח בקיבה?',
     options: ['פפסין', 'עמילאז', 'מרה', 'אינסולין'],
     correct_index: 0,
@@ -134,6 +136,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q3',
+    topic: 'ספיגה במעי',
     stem: 'מה מגדיל את שטח הפנים של המעי הדק?',
     options: ['שרירי הדופן', 'חומצת מלח', 'סיסים ומיקרוסיסים', 'הלבלב'],
     correct_index: 2,
@@ -141,6 +144,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q4',
+    topic: 'אנזימי עיכול',
     stem: 'איזה איבר מפריש מרה?',
     options: ['הלבלב', 'הקיבה', 'המעי הגס', 'הכבד'],
     correct_index: 3,
@@ -148,6 +152,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q5',
+    topic: 'אנזימי עיכול',
     stem: 'מהו תפקידה של המרה?',
     options: [
       'לפרק שומן לחומצות שומן',
@@ -160,6 +165,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q6',
+    topic: 'אנזימי עיכול',
     stem: 'מדוע פפסין אינו פועל במעי הדק?',
     options: [
       'כי הסביבה שם בסיסית',
@@ -172,6 +178,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q7',
+    topic: 'ספיגה במעי',
     stem: 'לאן נספגות חומצות שומן וגליצרול?',
     options: ['לנימי הדם', 'אל הכבד ישירות', 'לנים הלימפה', 'למעי הגס'],
     correct_index: 2,
@@ -179,6 +186,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q8',
+    topic: 'ספיגה במעי',
     stem: 'מה נספג במעי הגס?',
     options: ['סוכרים', 'חלבונים', 'שומנים', 'מים ומלחים'],
     correct_index: 3,
@@ -186,6 +194,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q9',
+    topic: 'מבנה מערכת העיכול',
     stem: 'מה מאפיין תנועה פריסטלטית?',
     options: [
       'היא תלויה בכוח הכובד',
@@ -198,6 +207,7 @@ export const demoQuiz = [
   },
   {
     id: 'demo-q10',
+    topic: 'מבנה מערכת העיכול',
     stem: 'מהי מטרתו של העיכול המכני?',
     options: [
       'לפרק חלבונים לפפטידים',
