@@ -137,20 +137,25 @@ export function FlashcardDeck({
           onClick={() => setRevealed(!revealed)}
           aria-label={revealed ? 'הסתר את התשובה' : 'הצג את התשובה'}
           data-flipped={revealed}
-          className="flip-card block h-64 w-full text-start"
+          className="flip-card block h-72 w-full text-start"
         >
           {/* פנים — השאלה */}
-          <div className="flip-face border-line-strong bg-surface shadow-card absolute inset-0 flex flex-col items-center justify-center rounded-2xl border px-6 pt-9 pb-12 text-center">
+          <div className="flip-face border-line-strong bg-surface shadow-card absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-2xl border px-6 pt-11 pb-12 text-center">
+            <p className="text-meta text-ink-faint absolute inset-x-0 top-5">שאלה</p>
             <p className="text-heading text-ink text-balance">{card.front}</p>
             <p className="text-meta text-ink-faint absolute inset-x-0 bottom-5">
               הקש כדי לראות את התשובה
             </p>
           </div>
 
-          {/* גב — התשובה, בהיפוך צבע מלא */}
-          <div className="flip-back bg-ink shadow-lift flex flex-col items-center justify-center rounded-2xl px-6 pt-9 pb-12 text-center">
-            <p className="text-heading text-on-ink text-balance">{card.back}</p>
-            <p className="text-meta text-on-ink/45 absolute inset-x-0 bottom-5 truncate px-6">
+          {/*
+            גב — התשובה. ירוק ולא שחור: הירוק הוא צבע ה"נכון" במערכת,
+            והתלמיד מזהה במבט אחד שהוא מסתכל על תשובה ולא על שאלה.
+          */}
+          <div className="flip-back bg-answer shadow-lift flex flex-col items-center justify-center overflow-hidden rounded-2xl px-6 pt-11 pb-12 text-center">
+            <p className="text-meta text-on-ink/60 absolute inset-x-0 top-5">התשובה</p>
+            <p className="text-subheading text-on-ink text-balance">{card.back}</p>
+            <p className="text-meta text-on-ink/55 absolute inset-x-0 bottom-5 truncate px-6">
               {card.front}
             </p>
           </div>

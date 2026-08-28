@@ -78,7 +78,7 @@ export default function LandingPage() {
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5">
         {/* ── הירו ────────────────────────────────────────────────── */}
-        <section className="grid gap-12 pt-14 pb-20 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-16">
+        <section className="grid gap-12 pt-14 pb-20 sm:pt-20 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-16">
           <div>
             <p className="rise border-line-strong text-meta text-ink-body inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
               <span aria-hidden="true" className="bg-ink size-1.5 rounded-full" />
@@ -86,17 +86,19 @@ export default function LandingPage() {
             </p>
 
             <h1
-              className="rise text-display sm:text-hero text-ink mt-5 text-balance"
+              className="rise text-display sm:text-hero text-ink mt-5"
               style={{ '--rise-delay': '60ms' } as React.CSSProperties}
             >
-              תהפוך את החומר שלך ללמידה חכמה
+              תצלם את המחברת.
+              <br />
+              קבל מבחן.
             </h1>
 
             <p
               className="rise text-lead text-ink-body mt-6 max-w-md text-pretty"
               style={{ '--rise-delay': '120ms' } as React.CSSProperties}
             >
-              העלה סיכום, מחברת או PDF וקבל סיכום, כרטיסיות, שאלות ומבחן — במקום אחד.
+              סיכום מלא, כרטיסיות ומבחן תרגול — מכל דף שתעלה. בעברית, ורק מהחומר שלך.
             </p>
 
             <div

@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2.1
 
 import { env } from './env.ts';
 import type { ModelUsage } from './model.ts';
-import type { StudySet } from './studySet.ts';
+import { summaryText, type StudySet } from './studySet.ts';
 
 export function db(): SupabaseClient {
   return createClient(env.supabaseUrl, env.serviceRoleKey, {
@@ -114,7 +114,8 @@ export async function writeStudySet(
 
   await c.from('summaries').insert({
     study_set_id: studySetId,
-    body: set.summary,
+    body: summaryText(set.summary_sections),
+    sections: set.summary_sections,
     key_points: set.key_points,
     definitions: set.definitions,
   });

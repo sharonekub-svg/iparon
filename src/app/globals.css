@@ -35,6 +35,9 @@
 
   /* מצבי תשובה — הצבעים היחידים במערכת, ובכוונה */
   --color-correct: #1a7f5a;
+  /* גב הכרטיסייה: אותו ירוק, כהה מספיק לטקסט לבן (יחס ניגודיות ~6.5) */
+  --color-answer: #0f5c3f;
+  --color-answer-deep: #0a4530;
   --color-correct-soft: #e6f2ec;
   --color-wrong: #b3261e;
   --color-wrong-soft: #fbeae9;
@@ -56,7 +59,7 @@
 
   /* כותרת הנחיתה — הגודל היחיד שקיים רק שם */
   --text-hero: 4rem;
-  --text-hero--line-height: 0.98;
+  --text-hero--line-height: 0.94;
   --text-hero--letter-spacing: -0.045em;
   --text-hero--font-weight: 800;
 

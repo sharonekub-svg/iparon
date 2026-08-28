@@ -91,8 +91,12 @@ export async function getStudySet(id: string): Promise<StudySetRow | null> {
   return (data as StudySetRow | null) ?? null;
 }
 
+export type SummarySection = { heading: string; body: string };
+
 export type Summary = {
   body: string;
+  /** ריק בחומר שעובד לפני שהפרקים נוספו — אז נופלים חזרה ל-body */
+  sections: SummarySection[];
   key_points: string[];
   definitions: { term: string; meaning: string }[];
 };
@@ -101,7 +105,7 @@ export async function getSummary(studySetId: string): Promise<Summary | null> {
   const supabase = await createServerSupabase();
   const { data } = await supabase
     .from('summaries')
-    .select('body, key_points, definitions')
+    .select('body, sections, key_points, definitions')
     .eq('study_set_id', studySetId)
     .maybeSingle();
   return (data as Summary | null) ?? null;

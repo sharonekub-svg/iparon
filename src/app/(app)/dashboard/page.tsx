@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { IconAddPage } from '@/components/ui/IconAddPage';
 import { IconArrow } from '@/components/ui/IconArrow';
 import { getEntitlements } from '@/lib/plans';
 import { listStudySets, statusLabels } from '@/lib/study';
@@ -56,15 +57,16 @@ export default async function DashboardPage() {
         <>
           <Link
             href="/upload"
-            className="border-line-dashed text-label text-ink hover:bg-surface hover:border-ink tap mt-6 flex items-center justify-center gap-2 rounded-2xl border border-dashed px-5 py-6"
+            className="border-line-strong bg-surface shadow-card hover:shadow-lift tap mt-6 flex items-center gap-4 rounded-2xl border px-5 py-5"
           >
-            <span
-              aria-hidden="true"
-              className="border-line-strong flex size-6 items-center justify-center rounded-full border text-base leading-none"
-            >
-              +
+            <IconAddPage className="text-ink shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="text-subheading text-ink block">העלה חומר חדש</span>
+              <span className="text-meta text-ink-faint mt-0.5 block">
+                צילום מהמחברת או PDF
+              </span>
             </span>
-            העלה חומר חדש
+            <IconArrow direction="forward" className="text-ink-faintest" />
           </Link>
 
           <h2 className="text-subheading text-ink mt-10">החומרים שלי</h2>
@@ -78,39 +80,24 @@ export default async function DashboardPage() {
                 <li key={set.id}>
                   <Link
                     href={href}
-                    className="border-line-strong bg-surface shadow-card hover:shadow-lift tap flex items-center gap-3 rounded-2xl border px-4 py-4"
+                    className="border-line-strong bg-surface shadow-card hover:shadow-lift tap flex items-center gap-3 rounded-2xl border px-5 py-5"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-3">
+                      {set.subject ? (
+                        <span className="text-meta text-ink-faint block">
+                          {set.subject}
+                        </span>
+                      ) : null}
+
+                      <div className="mt-0.5 flex items-baseline justify-between gap-3">
                         <span className="text-subheading text-ink truncate">
                           {set.title}
                         </span>
                         {set.mastery !== null ? (
-                          <span className="num text-subheading text-ink shrink-0">
+                          <span className="num text-heading text-ink shrink-0">
                             {set.mastery}%
                           </span>
                         ) : null}
-                      </div>
-
-                      <div className="text-meta text-ink-faint mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        {set.subject ? <span>{set.subject}</span> : null}
-                        {ready ? (
-                          <>
-                            <span>
-                              <span className="num">{set.flashcardCount}</span> כרטיסיות
-                            </span>
-                            <span>
-                              <span className="num">{set.quizCount}</span> שאלות
-                            </span>
-                          </>
-                        ) : (
-                          <span className={set.status === 'failed' ? 'text-wrong' : ''}>
-                            {statusLabels[set.status]}
-                            {set.status === 'processing' || set.status === 'queued'
-                              ? '…'
-                              : ''}
-                          </span>
-                        )}
                       </div>
 
                       {/* שליטה כפס ולא רק כמספר — נקרא במבט אחד בזמן גלילה */}
@@ -122,6 +109,32 @@ export default async function DashboardPage() {
                           />
                         </div>
                       ) : null}
+
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                        {ready ? (
+                          <>
+                            <span className="bg-surface-sunk text-meta text-ink-body rounded-full px-2.5 py-1">
+                              <span className="num">{set.flashcardCount}</span> כרטיסיות
+                            </span>
+                            <span className="bg-surface-sunk text-meta text-ink-body rounded-full px-2.5 py-1">
+                              <span className="num">{set.quizCount}</span> שאלות
+                            </span>
+                          </>
+                        ) : (
+                          <span
+                            className={`text-meta rounded-full px-2.5 py-1 ${
+                              set.status === 'failed'
+                                ? 'bg-wrong-soft text-wrong'
+                                : 'bg-surface-sunk text-ink-body'
+                            }`}
+                          >
+                            {statusLabels[set.status]}
+                            {set.status === 'processing' || set.status === 'queued'
+                              ? '…'
+                              : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <IconArrow direction="forward" className="text-ink-faintest" />

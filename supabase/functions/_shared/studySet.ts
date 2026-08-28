@@ -13,7 +13,7 @@ export const studySetSchema = {
     'subject',
     'title',
     'topics',
-    'summary',
+    'summary_sections',
     'key_points',
     'definitions',
     'flashcards',
@@ -30,11 +30,28 @@ export const studySetSchema = {
       items: { type: 'string' },
       description: 'הנושאים שזוהו בחומר',
     },
-    summary: { type: 'string', description: 'סיכום בפסקאות, מופרדות בשורה ריקה כפולה' },
-    key_points: { type: 'array', minItems: 1, maxItems: 10, items: { type: 'string' } },
+    summary_sections: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 12,
+      description: 'הסיכום, מחולק לפרקים לפי הנושאים בחומר ובסדר שבו הם מופיעים',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['heading', 'body'],
+        properties: {
+          heading: { type: 'string', description: 'כותרת הפרק בעברית, קצרה' },
+          body: {
+            type: 'string',
+            description: 'גוף הפרק. פסקאות מופרדות בשורה ריקה כפולה',
+          },
+        },
+      },
+    },
+    key_points: { type: 'array', minItems: 3, maxItems: 14, items: { type: 'string' } },
     definitions: {
       type: 'array',
-      maxItems: 15,
+      maxItems: 30,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -44,8 +61,8 @@ export const studySetSchema = {
     },
     flashcards: {
       type: 'array',
-      minItems: 5,
-      maxItems: 25,
+      minItems: 8,
+      maxItems: 40,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -59,14 +76,14 @@ export const studySetSchema = {
     },
     quiz_questions: {
       type: 'array',
-      minItems: 4,
-      maxItems: 12,
+      minItems: 8,
+      maxItems: 25,
       items: questionSchema(),
     },
     exam_questions: {
       type: 'array',
-      minItems: 8,
-      maxItems: 40,
+      minItems: 15,
+      maxItems: 60,
       items: questionSchema(),
     },
   },
@@ -88,6 +105,7 @@ function questionSchema() {
 }
 
 export type Definition = { term: string; meaning: string };
+export type SummarySection = { heading: string; body: string };
 export type Flashcard = { q: string; a: string; topic: string };
 export type Question = {
   q: string;
@@ -101,7 +119,8 @@ export type StudySet = {
   subject: string;
   title: string;
   topics: string[];
-  summary: string;
+  /** הסיכום כפרקים. `summaryText` הוא אותו תוכן כטקסט אחד, לעמודת body. */
+  summary_sections: SummarySection[];
   key_points: string[];
   definitions: Definition[];
   flashcards: Flashcard[];
@@ -170,7 +189,17 @@ export function parseStudySet(value: unknown): StudySet {
     subject: str(v.subject, 'subject'),
     title: str(v.title, 'title'),
     topics,
-    summary: str(v.summary, 'summary'),
+    summary_sections: (() => {
+      const sections = arr(v.summary_sections, 'summary_sections').map((sec, i) => {
+        const o = sec as Record<string, unknown>;
+        return {
+          heading: str(o?.heading, `summary_sections[${i}].heading`),
+          body: str(o?.body, `summary_sections[${i}].body`),
+        };
+      });
+      if (sections.length === 0) throw new StudySetError('הסיכום ריק');
+      return sections;
+    })(),
     key_points: arr(v.key_points, 'key_points').map((p, i) => str(p, `key_points[${i}]`)),
     definitions: arr(v.definitions, 'definitions').map((d, i) => {
       const o = d as Record<string, unknown>;
@@ -194,4 +223,13 @@ export function parseStudySet(value: unknown): StudySet {
       parseQuestion(q, `exam_questions[${i}]`),
     ),
   };
+}
+
+
+/**
+ * הסיכום כטקסט אחד, לעמודת `body` שממשיכה להיות מקור האמת הפשוט.
+ * הפרקים נשמרים בנפרד ב-`sections` ומשמשים את התצוגה.
+ */
+export function summaryText(sections: SummarySection[]): string {
+  return sections.map((s) => `${s.heading}\n\n${s.body}`).join('\n\n');
 }

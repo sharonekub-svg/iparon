@@ -57,12 +57,12 @@ export function HeroCard() {
             </p>
           </div>
 
-          <div className="flip-back bg-ink shadow-lift flex flex-col items-center justify-center rounded-2xl px-6 pt-9 pb-12 text-center">
-            <p className="text-meta text-on-ink/45 absolute inset-x-0 top-5 font-mono">
+          <div className="flip-back bg-answer shadow-lift flex flex-col items-center justify-center overflow-hidden rounded-2xl px-6 pt-9 pb-12 text-center">
+            <p className="text-meta text-on-ink/60 absolute inset-x-0 top-5 font-mono">
               התשובה
             </p>
-            <p className="text-heading text-on-ink text-balance">{card.back}</p>
-            <p className="text-meta text-on-ink/45 absolute inset-x-0 bottom-5">
+            <p className="text-subheading text-on-ink text-balance">{card.back}</p>
+            <p className="text-meta text-on-ink/55 absolute inset-x-0 bottom-5">
               הקש כדי לחזור לשאלה
             </p>
           </div>
