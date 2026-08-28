@@ -134,13 +134,29 @@ export function UploadForm() {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className={`flex w-full flex-col items-center gap-2 rounded-lg border border-dashed px-5 py-10 transition-colors disabled:opacity-50 ${
+          className={`tap flex w-full flex-col items-center gap-3 rounded-2xl border border-dashed px-5 py-14 disabled:opacity-50 ${
             dragging
-              ? 'border-ink bg-surface-sunk'
-              : 'border-line-dashed hover:bg-surface-sunk'
+              ? 'border-ink bg-surface shadow-card'
+              : 'border-line-dashed hover:border-ink hover:bg-surface'
           }`}
         >
-          <span className="text-label text-ink">
+          <span
+            aria-hidden="true"
+            className="border-line-strong text-ink flex size-12 items-center justify-center rounded-full border"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="size-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 16V4M12 4 7.5 8.5M12 4l4.5 4.5M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" />
+            </svg>
+          </span>
+          <span className="text-subheading text-ink">
             {files.length > 0 ? 'הוסף עוד עמודים' : 'בחר קובץ או צלם דף'}
           </span>
           <span className="text-meta text-ink-faint">
@@ -173,7 +189,7 @@ export function UploadForm() {
             return (
               <li
                 key={key}
-                className="border-line bg-surface flex items-center gap-3 rounded-md border p-2.5"
+                className="border-line-strong bg-surface shadow-card flex items-center gap-3 rounded-xl border p-2.5"
               >
                 {preview ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -243,7 +259,7 @@ export function UploadForm() {
         type="button"
         onClick={submit}
         disabled={busy || files.length === 0}
-        className="bg-ink text-on-ink text-label rounded-md px-6 py-3.5 disabled:opacity-50"
+        className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-4 hover:opacity-90 disabled:opacity-50"
       >
         {phase === 'starting'
           ? 'מתחיל עיבוד...'

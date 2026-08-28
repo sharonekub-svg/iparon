@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   return (
     <>
       <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-heading text-ink">{greeting} 👋</h1>
+        <h1 className="text-display text-ink">{greeting}</h1>
         {entitlements.tier === 'free' ? (
           <Link href="/premium" className="text-meta text-ink-faint hover:text-ink">
             שדרוג
@@ -38,15 +38,15 @@ export default async function DashboardPage() {
 
       {sets.length === 0 ? (
         <section className="mt-8">
-          <div className="border-line-dashed rounded-xl border border-dashed px-5 py-10 text-center">
-            <p className="text-subheading text-ink">בוא נתחיל</p>
-            <p className="text-small text-ink-body mx-auto mt-2 max-w-xs">
+          <div className="rise border-line-strong bg-surface shadow-card rounded-2xl border px-5 py-12 text-center">
+            <p className="text-heading text-ink text-balance">בוא נתחיל</p>
+            <p className="text-small text-ink-body mx-auto mt-3 max-w-xs text-pretty">
               צלם דף מהמחברת או העלה PDF. תוך כמה רגעים יחכו לך סיכום, כרטיסיות ושאלות
               מהחומר שלך.
             </p>
             <Link
               href="/upload"
-              className="bg-ink text-on-ink text-label mt-6 inline-block rounded-md px-6 py-3.5"
+              className="bg-ink text-on-ink text-label tap mt-7 inline-block rounded-lg px-7 py-4 hover:opacity-90"
             >
               העלה חומר ראשון
             </Link>
@@ -56,31 +56,37 @@ export default async function DashboardPage() {
         <>
           <Link
             href="/upload"
-            className="border-line-dashed text-label text-ink hover:bg-surface-sunk mt-6 flex items-center justify-center rounded-lg border border-dashed px-5 py-5 transition-colors"
+            className="border-line-dashed text-label text-ink hover:bg-surface hover:border-ink tap mt-6 flex items-center justify-center gap-2 rounded-2xl border border-dashed px-5 py-6"
           >
+            <span
+              aria-hidden="true"
+              className="border-line-strong flex size-6 items-center justify-center rounded-full border text-base leading-none"
+            >
+              +
+            </span>
             העלה חומר חדש
           </Link>
 
           <h2 className="text-subheading text-ink mt-10">החומרים שלי</h2>
 
-          <ul className="mt-3 flex flex-col">
+          <ul className="mt-3 flex flex-col gap-2.5">
             {sets.map((set) => {
               const ready = set.status === 'ready';
               const href = ready ? `/sets/${set.id}` : `/sets/${set.id}/processing`;
 
               return (
-                <li key={set.id} className="border-line border-b last:border-b-0">
+                <li key={set.id}>
                   <Link
                     href={href}
-                    className="hover:bg-surface-sunk -mx-3 flex items-center gap-3 rounded-md px-3 py-4 transition-colors"
+                    className="border-line-strong bg-surface shadow-card hover:shadow-lift tap flex items-center gap-3 rounded-2xl border px-4 py-4"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-bodyStrong text-ink truncate font-semibold">
+                        <span className="text-subheading text-ink truncate">
                           {set.title}
                         </span>
                         {set.mastery !== null ? (
-                          <span className="num text-meta text-ink-faint shrink-0 font-mono">
+                          <span className="num text-subheading text-ink shrink-0">
                             {set.mastery}%
                           </span>
                         ) : null}
@@ -109,9 +115,9 @@ export default async function DashboardPage() {
 
                       {/* שליטה כפס ולא רק כמספר — נקרא במבט אחד בזמן גלילה */}
                       {set.mastery !== null ? (
-                        <div className="bg-track mt-2.5 h-1 overflow-hidden rounded-full">
+                        <div className="bg-track mt-3 h-1.5 overflow-hidden rounded-full">
                           <div
-                            className="bg-ink h-full"
+                            className="bg-ink h-full rounded-full"
                             style={{ width: `${set.mastery}%` }}
                           />
                         </div>

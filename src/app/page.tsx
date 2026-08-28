@@ -1,10 +1,12 @@
 import Link from 'next/link';
 
+import { HeroCard } from '@/components/landing/HeroCard';
 import { brand } from '@/lib/brand';
 
 /**
  * דף הנחיתה. תפקידו להסביר את המוצר בכמה שניות ולהוציא את המבקר
- * להרשמה — לא להרשים. בלי גרדיאנטים, בלי אנימציות, בלי בלוקי טקסט ארוכים.
+ * להרשמה. ההסבר העיקרי הוא לא טקסט אלא כרטיסייה שאפשר להפוך —
+ * המבקר מרגיש את המוצר לפני שהוא נרשם.
  */
 
 const steps = [
@@ -23,6 +25,13 @@ const steps = [
     title: 'לומדים ונבחנים',
     body: 'כרטיסיות, קוויז ומבחן תרגול. בסוף רואים במה אתה חזק ובמה כדאי לחזור.',
   },
+];
+
+const outputs = [
+  { title: 'סיכום', body: 'הנושאים, עיקרי הדברים והמושגים — מסודרים.' },
+  { title: 'כרטיסיות', body: 'שאלה בצד אחד, תשובה בשני. הופכים ומדרגים.' },
+  { title: 'תרגול', body: 'שאלות אמריקאיות עם משוב והסבר מיד אחרי כל בחירה.' },
+  { title: 'מבחן', body: 'מבחן על נושא בודד, או מבחן משותף על כל החומר.' },
 ];
 
 function ArrowStart({ className = '' }: { className?: string }) {
@@ -47,88 +56,105 @@ function ArrowStart({ className = '' }: { className?: string }) {
 export default function LandingPage() {
   return (
     <>
-      <header className="border-line border-b">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
+      <header className="border-line bg-paper/80 sticky top-0 z-10 border-b backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
           <span className="text-meta text-ink font-mono">{brand.name}</span>
-          <Link
-            href="/login"
-            className="text-label text-ink-muted hover:text-ink transition-colors"
-          >
-            כניסה
-          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/login"
+              className="text-label text-ink-muted hover:text-ink tap rounded-md px-3 py-2"
+            >
+              כניסה
+            </Link>
+            <Link
+              href="/signup"
+              className="bg-ink text-label text-on-ink tap rounded-md px-4 py-2 hover:opacity-90"
+            >
+              הרשמה
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-5">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5">
         {/* ── הירו ────────────────────────────────────────────────── */}
-        <section className="pt-14 pb-16 sm:pt-20">
-          <h1 className="text-display text-ink max-w-xl">
-            תהפוך את החומר שלך ללמידה חכמה
-          </h1>
-          <p className="text-lead text-ink-body mt-5 max-w-lg">
-            העלה סיכום, מחברת או PDF וקבל סיכום, כרטיסיות, שאלות ומבחן — במקום אחד.
-          </p>
+        <section className="grid gap-12 pt-14 pb-20 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-16">
+          <div>
+            <p className="rise border-line-strong text-meta text-ink-body inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
+              <span aria-hidden="true" className="bg-ink size-1.5 rounded-full" />
+              עברית, מהמחברת שלך
+            </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/signup"
-              className="bg-ink text-label text-on-ink inline-flex items-center justify-center gap-2 rounded-md px-6 py-3.5 transition-opacity hover:opacity-90"
+            <h1
+              className="rise text-display sm:text-hero text-ink mt-5 text-balance"
+              style={{ '--rise-delay': '60ms' } as React.CSSProperties}
             >
-              התחל ללמוד
-              <ArrowStart />
-            </Link>
-            <Link
-              href="/demo"
-              className="border-line-input text-label text-ink hover:bg-surface-sunk inline-flex items-center justify-center rounded-md border px-6 py-3.5 transition-colors"
+              תהפוך את החומר שלך ללמידה חכמה
+            </h1>
+
+            <p
+              className="rise text-lead text-ink-body mt-6 max-w-md text-pretty"
+              style={{ '--rise-delay': '120ms' } as React.CSSProperties}
             >
-              נסה בלי הרשמה
-            </Link>
+              העלה סיכום, מחברת או PDF וקבל סיכום, כרטיסיות, שאלות ומבחן — במקום אחד.
+            </p>
+
+            <div
+              className="rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+              style={{ '--rise-delay': '180ms' } as React.CSSProperties}
+            >
+              <Link
+                href="/signup"
+                className="bg-ink text-label text-on-ink shadow-card tap inline-flex items-center justify-center gap-2 rounded-lg px-7 py-4 hover:opacity-90"
+              >
+                התחל ללמוד
+                <ArrowStart />
+              </Link>
+              <Link
+                href="/demo"
+                className="border-line-input text-label text-ink hover:bg-surface-sunk tap inline-flex items-center justify-center rounded-lg border px-7 py-4"
+              >
+                נסה בלי הרשמה
+              </Link>
+            </div>
+
+            <p
+              className="rise text-meta text-ink-faint mt-5"
+              style={{ '--rise-delay': '240ms' } as React.CSSProperties}
+            >
+              חינם להתחלה. בלי כרטיס אשראי.
+            </p>
           </div>
 
-          <p className="text-meta text-ink-faint mt-5">חינם. הכול בעברית.</p>
+          <div
+            className="rise"
+            style={{ '--rise-delay': '300ms' } as React.CSSProperties}
+          >
+            <HeroCard />
+          </div>
         </section>
 
-        {/* ── תצוגה מקדימה ────────────────────────────────────────── */}
-        <section aria-labelledby="preview-heading" className="pb-16">
-          <h2 id="preview-heading" className="sr-only">
-            כך נראית התוצאה
+        {/* ── מה מקבלים ───────────────────────────────────────────── */}
+        <section aria-labelledby="outputs-heading" className="border-line border-t py-14">
+          <h2 id="outputs-heading" className="text-heading text-ink text-balance">
+            העלאה אחת, ארבעה כלים
           </h2>
-
-          <Link
-            href="/demo"
-            className="border-line-strong bg-surface hover:border-ink block overflow-hidden rounded-xl border transition-colors"
-          >
-            <div className="border-line flex items-center justify-between border-b px-5 py-3.5">
-              <span className="text-label text-ink">ביולוגיה — מערכת העיכול</span>
-              <span className="text-meta text-ink-faint font-mono">6 עמודים</span>
-            </div>
-
-            <div className="border-line text-label flex gap-1 border-b px-3 py-2">
-              <span className="bg-surface-sunk text-ink rounded-xs px-3 py-1.5">
-                סיכום
-              </span>
-              <span className="text-ink-faint px-3 py-1.5">כרטיסיות</span>
-              <span className="text-ink-faint px-3 py-1.5">תרגול</span>
-              <span className="text-ink-faint px-3 py-1.5">מבחן</span>
-            </div>
-
-            <div className="space-y-4 px-5 py-5">
-              <p className="text-small text-ink-body">
-                העיכול מתחיל בפה, שם האנזים עמילאז ברוק מפרק עמילן לסוכרים פשוטים. מהוושט
-                המזון מגיע לקיבה, שבה חומצת מלח מפעילה את פפסין לפירוק חלבונים.
-              </p>
-              <div className="border-line bg-paper rounded-md border px-4 py-3">
-                <p className="text-meta text-ink-faint">כרטיסייה</p>
-                <p className="text-small text-ink mt-1.5">
-                  איזה אנזים מפרק עמילן, והיכן הוא פועל?
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          <p className="text-meta text-ink-faint mt-3">
-            כך נראה חומר אחרי עיבוד. הקש כדי להתנסות בעצמך.
+          <p className="text-small text-ink-body mt-3 max-w-md">
+            אין צורך לבקש כל דבר בנפרד. החומר עובר עיבוד אחד, ומה שיוצא ממנו מחכה
+            בלשוניות.
           </p>
+
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+            {outputs.map((item) => (
+              <li
+                key={item.title}
+                className="border-line-strong bg-surface shadow-card rounded-2xl border px-5 py-5"
+              >
+                <h3 className="text-subheading text-ink">{item.title}</h3>
+                <p className="text-small text-ink-body mt-1.5">{item.body}</p>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* ── איך זה עובד ─────────────────────────────────────────── */}
@@ -136,33 +162,42 @@ export default function LandingPage() {
           <h2 id="how-heading" className="text-heading text-ink">
             איך זה עובד
           </h2>
-          <ol className="mt-8 space-y-8">
+          <ol className="mt-8 grid gap-8 sm:grid-cols-3">
             {steps.map((step) => (
-              <li key={step.n} className="flex gap-4">
-                <span className="num text-meta text-ink-faint mt-0.5 font-mono">
+              <li key={step.n}>
+                <span className="num text-display text-ink-faintest block font-mono">
                   {step.n}
                 </span>
-                <div>
-                  <h3 className="text-subheading text-ink">{step.title}</h3>
-                  <p className="text-small text-ink-body mt-1.5 max-w-md">{step.body}</p>
-                </div>
+                <h3 className="text-subheading text-ink mt-2">{step.title}</h3>
+                <p className="text-small text-ink-body mt-1.5">{step.body}</p>
               </li>
             ))}
           </ol>
         </section>
 
         {/* ── מה שחשוב לומר ───────────────────────────────────────── */}
-        <section className="border-line border-t py-14">
-          <h2 className="text-heading text-ink">רק מהחומר שלך</h2>
-          <p className="text-small text-ink-body mt-4 max-w-lg">
-            הסיכום, הכרטיסיות והשאלות נבנים אך ורק ממה שהעלית. המערכת לא מוסיפה ידע חיצוני
-            ולא ממציאה — כדי שמה שתלמד יהיה מה שהמורה שלך נתן.
-          </p>
+        <section className="pt-14 pb-16">
+          <div className="bg-ink shadow-lift rounded-2xl px-6 py-12 text-center sm:px-12 sm:py-16">
+            <h2 className="text-display text-on-ink mx-auto max-w-lg text-balance">
+              רק מהחומר שלך
+            </h2>
+            <p className="text-lead text-on-ink/70 mx-auto mt-5 max-w-lg text-pretty">
+              הסיכום, הכרטיסיות והשאלות נבנים אך ורק ממה שהעלית. המערכת לא מוסיפה ידע
+              חיצוני ולא ממציאה — כדי שמה שתלמד יהיה מה שהמורה שלך נתן.
+            </p>
+            <Link
+              href="/signup"
+              className="bg-on-ink text-label text-ink tap mt-8 inline-flex items-center justify-center gap-2 rounded-lg px-7 py-4 hover:opacity-90"
+            >
+              התחל ללמוד
+              <ArrowStart />
+            </Link>
+          </div>
         </section>
       </main>
 
       <footer className="border-line border-t">
-        <div className="mx-auto flex max-w-3xl flex-col gap-2 px-5 py-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-5 py-8 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-meta text-ink-faint font-mono">{brand.name}</span>
           <span className="text-meta text-ink-faint">נבנה לתלמידים בישראל</span>
         </div>

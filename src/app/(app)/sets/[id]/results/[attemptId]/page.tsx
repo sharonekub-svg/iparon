@@ -18,11 +18,10 @@ export default async function ResultsPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="border-line rounded-lg border px-5 py-8 text-center">
-        <p className="text-display text-ink">
-          <span className="num">{result.score}</span>
-        </p>
-        <p className="text-small text-ink-body mt-2">
+      <div className="rise bg-ink shadow-lift rounded-2xl px-5 py-12 text-center">
+        <p className="text-meta text-on-ink/50">הציון שלך</p>
+        <p className="num text-figure text-on-ink mt-2">{result.score}</p>
+        <p className="text-small text-on-ink/70 mt-3">
           ענית נכון על <span className="num">{correct}</span> מתוך{' '}
           <span className="num">{result.answers.length}</span> שאלות
         </p>
@@ -35,12 +34,20 @@ export default async function ResultsPage({
             {weak.map((topic) => (
               <li
                 key={topic.name}
-                className="border-line flex items-center justify-between rounded-md border px-4 py-3"
+                className="border-line-strong bg-surface rounded-xl border px-4 py-3.5"
               >
-                <span className="text-body text-ink">{topic.name}</span>
-                <span className="num text-meta text-ink-faint font-mono">
-                  {topic.correct}/{topic.total}
-                </span>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-body text-ink">{topic.name}</span>
+                  <span className="num text-meta text-ink-faint shrink-0 font-mono">
+                    {topic.correct}/{topic.total}
+                  </span>
+                </div>
+                <div className="bg-track mt-2.5 h-1.5 overflow-hidden rounded-full">
+                  <div
+                    className="bg-ink h-full rounded-full"
+                    style={{ width: `${(topic.correct / topic.total) * 100}%` }}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -54,12 +61,20 @@ export default async function ResultsPage({
             {strong.map((topic) => (
               <li
                 key={topic.name}
-                className="border-line flex items-center justify-between rounded-md border px-4 py-3"
+                className="border-line-strong bg-surface rounded-xl border px-4 py-3.5"
               >
-                <span className="text-body text-ink">{topic.name}</span>
-                <span className="num text-meta text-ink-faint font-mono">
-                  {topic.correct}/{topic.total}
-                </span>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-body text-ink">{topic.name}</span>
+                  <span className="num text-meta text-ink-faint shrink-0 font-mono">
+                    {topic.correct}/{topic.total}
+                  </span>
+                </div>
+                <div className="bg-track mt-2.5 h-1.5 overflow-hidden rounded-full">
+                  <div
+                    className="bg-ink h-full rounded-full"
+                    style={{ width: `${(topic.correct / topic.total) * 100}%` }}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -98,7 +113,7 @@ export default async function ResultsPage({
                   ) : null}
 
                   {answer.explanation ? (
-                    <p className="text-small text-ink-body bg-surface-sunk mt-2.5 rounded-md px-3.5 py-2.5">
+                    <p className="text-small text-ink-body bg-surface-sunk mt-2.5 rounded-xl px-3.5 py-2.5">
                       {answer.explanation}
                     </p>
                   ) : null}
@@ -111,7 +126,7 @@ export default async function ResultsPage({
 
       <Link
         href={`/sets/${id}/exam`}
-        className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-6 py-3.5 text-center"
+        className="border-line-input text-label text-ink hover:bg-surface-sunk tap rounded-lg border px-6 py-4 text-center"
       >
         מבחן נוסף
       </Link>

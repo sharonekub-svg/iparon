@@ -15,21 +15,21 @@ export default async function UploadPage() {
   if (!allowance.allowed) {
     return (
       <>
-        <h1 className="text-heading text-ink">נגמרה המכסה</h1>
+        <h1 className="text-display text-ink">נגמרה המכסה</h1>
         <p className="text-small text-ink-body mt-2">{allowance.reason}</p>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           {entitlements.tier === 'free' ? (
             <Link
               href="/premium"
-              className="bg-ink text-on-ink text-label rounded-md px-5 py-3 text-center"
+              className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-3.5 text-center hover:opacity-90"
             >
               מה כלול במסלול המורחב
             </Link>
           ) : null}
           <Link
             href="/dashboard"
-            className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-5 py-3 text-center"
+            className="border-line-input text-label text-ink hover:bg-surface-sunk tap rounded-lg border px-6 py-3.5 text-center"
           >
             לחומרים שלי
           </Link>
@@ -45,8 +45,8 @@ export default async function UploadPage() {
 
   return (
     <>
-      <h1 className="text-heading text-ink">העלאת חומר</h1>
-      <p className="text-small text-ink-body mt-2">
+      <h1 className="text-display text-ink">העלאת חומר</h1>
+      <p className="text-small text-ink-body mt-3">
         סיכום, דף מחברת מצולם, או PDF של פרק שלם. גם כתב יד.
       </p>
       {remaining !== null ? (

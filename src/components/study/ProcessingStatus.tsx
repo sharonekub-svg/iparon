@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { retryProcessing } from '@/app/(app)/sets/[id]/actions';
 import { getProgress } from '@/app/(app)/upload/actions';
+import { IconMark } from '@/components/ui/IconMark';
 
 /**
  * מסך העיבוד.
@@ -76,8 +77,8 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
 
   if (failed) {
     return (
-      <div className="border-line rounded-lg border px-5 py-8">
-        <h1 className="text-subheading text-ink">העיבוד נכשל</h1>
+      <div className="border-line-strong bg-surface shadow-card rounded-2xl border px-5 py-8">
+        <h1 className="text-heading text-ink">העיבוד נכשל</h1>
         <p className="text-small text-ink-body mt-2">{failed}</p>
 
         {retryError ? (
@@ -94,13 +95,13 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
             type="button"
             onClick={retry}
             disabled={retrying}
-            className="bg-ink text-on-ink text-label rounded-md px-5 py-3 disabled:opacity-50"
+            className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-3.5 hover:opacity-90 disabled:opacity-50"
           >
             {retrying ? 'מתחיל...' : 'נסה שוב'}
           </button>
           <Link
             href="/dashboard"
-            className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-5 py-3 text-center"
+            className="border-line-input text-label text-ink hover:bg-surface-sunk tap rounded-lg border px-6 py-3.5 text-center"
           >
             לחומרים שלי
           </Link>
@@ -117,27 +118,46 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
 
   return (
     <div>
-      <h1 className="text-heading text-ink">עוד רגע ואתה מוכן ללמוד</h1>
-      <p className="text-small text-ink-body mt-2">
+      <h1 className="text-display text-ink text-balance">עוד רגע ואתה מוכן ללמוד</h1>
+      <p className="text-small text-ink-body mt-3">
         אפשר לסגור את המסך — העיבוד ממשיך, והחומר יחכה לך ברשימה.
       </p>
 
-      <ol className="mt-8 flex flex-col gap-4">
+      <ol className="border-line-strong bg-surface shadow-card mt-8 flex flex-col rounded-2xl border px-5 py-2">
         {STAGES.map((item, i) => {
           const done = current > i;
           const active = current === i;
 
           return (
-            <li key={item.key} className="flex items-center gap-3">
+            <li
+              key={item.key}
+              className="border-line flex items-center gap-3 border-b py-4 last:border-b-0"
+            >
               <span
                 aria-hidden="true"
-                className={`size-2 shrink-0 rounded-full ${
-                  done ? 'bg-correct' : active ? 'bg-ink animate-pulse' : 'bg-line-strong'
+                className={`flex size-6 shrink-0 items-center justify-center rounded-full border ${
+                  done
+                    ? 'border-ink bg-ink text-on-ink'
+                    : active
+                      ? 'border-ink text-ink'
+                      : 'border-line-strong text-ink-faintest'
                 }`}
-              />
+              >
+                {done ? (
+                  <IconMark kind="check" className="size-3.5" />
+                ) : active ? (
+                  <span className="bg-ink size-2 animate-pulse rounded-full" />
+                ) : (
+                  <span className="bg-line-strong size-1.5 rounded-full" />
+                )}
+              </span>
               <span
                 className={`text-body ${
-                  done ? 'text-ink-faint' : active ? 'text-ink' : 'text-ink-faintest'
+                  done
+                    ? 'text-ink-faint'
+                    : active
+                      ? 'text-ink font-semibold'
+                      : 'text-ink-faintest'
                 }`}
               >
                 {item.label}

@@ -77,19 +77,19 @@ export function FlashcardDeck({
     const shaky = counts[0] + counts[1];
 
     return (
-      <div className="border-line rounded-lg border px-5 py-8 text-center">
-        <p className="text-subheading text-ink">סיימת את הסיבוב</p>
+      <div className="rise bg-ink shadow-lift rounded-2xl px-5 py-12 text-center">
+        <p className="text-heading text-on-ink">סיימת את הסיבוב</p>
 
-        <div className="mt-5 flex justify-center gap-6">
+        <div className="mt-8 flex justify-center gap-8">
           {RATINGS.map((rating) => (
             <div key={rating.value}>
-              <p className="num text-heading text-ink">{counts[rating.value]}</p>
-              <p className="text-meta text-ink-faint mt-0.5">{rating.label}</p>
+              <p className="num text-display text-on-ink">{counts[rating.value]}</p>
+              <p className="text-meta text-on-ink/50 mt-1">{rating.label}</p>
             </div>
           ))}
         </div>
 
-        <p className="text-small text-ink-body mt-5">
+        <p className="text-small text-on-ink/70 mx-auto mt-8 max-w-xs text-balance">
           {shaky === 0
             ? 'ידעת הכול. אפשר לעבור לתרגול.'
             : `${shaky === 1 ? 'כרטיסייה אחת' : `${shaky} כרטיסיות`} עוד לא יושבות. עוד סיבוב יעזור.`}
@@ -98,7 +98,7 @@ export function FlashcardDeck({
         <button
           type="button"
           onClick={restart}
-          className="border-line-input text-label text-ink hover:bg-surface-sunk mt-5 rounded-md border px-5 py-2.5"
+          className="bg-on-ink text-label text-ink tap mt-7 rounded-lg px-6 py-3.5 hover:opacity-90"
         >
           עוד סיבוב
         </button>
@@ -127,19 +127,35 @@ export function FlashcardDeck({
         <ProgressBar value={index} max={cards.length} />
       </div>
 
-      <button
-        type="button"
-        onClick={() => setRevealed(true)}
-        disabled={revealed}
-        className="border-line-strong bg-surface mt-5 flex min-h-56 w-full flex-col justify-center gap-4 rounded-xl border px-6 py-8 text-start disabled:cursor-default"
-      >
-        <p className="text-subheading text-ink">{card.front}</p>
-        {revealed ? (
-          <p className="text-body text-ink-body border-line border-t pt-4">{card.back}</p>
-        ) : (
-          <p className="text-meta text-ink-faint">הקש כדי לראות את התשובה</p>
-        )}
-      </button>
+      {/*
+        סצנת ההיפוך. הכפתור עוטף את שתי הפאות, כך שהקשה בכל מקום
+        על הכרטיסייה הופכת אותה — ולא רק על אזור קטן.
+      */}
+      <div className="flip-scene mt-5">
+        <button
+          type="button"
+          onClick={() => setRevealed(!revealed)}
+          aria-label={revealed ? 'הסתר את התשובה' : 'הצג את התשובה'}
+          data-flipped={revealed}
+          className="flip-card block h-64 w-full text-start"
+        >
+          {/* פנים — השאלה */}
+          <div className="flip-face border-line-strong bg-surface shadow-card absolute inset-0 flex flex-col items-center justify-center rounded-2xl border px-6 pt-9 pb-12 text-center">
+            <p className="text-heading text-ink text-balance">{card.front}</p>
+            <p className="text-meta text-ink-faint absolute inset-x-0 bottom-5">
+              הקש כדי לראות את התשובה
+            </p>
+          </div>
+
+          {/* גב — התשובה, בהיפוך צבע מלא */}
+          <div className="flip-back bg-ink shadow-lift flex flex-col items-center justify-center rounded-2xl px-6 pt-9 pb-12 text-center">
+            <p className="text-heading text-on-ink text-balance">{card.back}</p>
+            <p className="text-meta text-on-ink/45 absolute inset-x-0 bottom-5 truncate px-6">
+              {card.front}
+            </p>
+          </div>
+        </button>
+      </div>
 
       {error ? (
         <p
@@ -151,14 +167,14 @@ export function FlashcardDeck({
       ) : null}
 
       {revealed ? (
-        <div className="mt-4 flex gap-2">
+        <div className="rise mt-4 flex gap-2">
           {RATINGS.map((rating) => (
             <button
               key={rating.value}
               type="button"
               disabled={saving}
               onClick={() => rate(rating.value)}
-              className="border-line-input text-label text-ink hover:bg-surface-sunk flex-1 rounded-md border px-2 py-3.5 transition-colors disabled:opacity-50"
+              className="border-line-input text-label text-ink hover:border-ink hover:bg-surface tap flex-1 rounded-xl border px-2 py-4 disabled:opacity-50"
             >
               {rating.label}
             </button>

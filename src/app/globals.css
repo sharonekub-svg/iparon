@@ -43,18 +43,31 @@
   --font-sans: var(--font-assistant), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
-  --text-display: 2.5rem;
-  --text-display--line-height: 2.6875rem;
-  --text-display--letter-spacing: -0.025em;
+  --text-display: 3.25rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
   --text-display--font-weight: 800;
 
-  --text-heading: 1.625rem;
-  --text-heading--line-height: 2.125rem;
-  --text-heading--letter-spacing: -0.005em;
-  --text-heading--font-weight: 700;
+  /* מספר גדול — ציון, מונה */
+  --text-figure: 4.5rem;
+  --text-figure--line-height: 1;
+  --text-figure--letter-spacing: -0.04em;
+  --text-figure--font-weight: 800;
 
-  --text-subheading: 1.1875rem;
-  --text-subheading--line-height: 1.625rem;
+  /* כותרת הנחיתה — הגודל היחיד שקיים רק שם */
+  --text-hero: 4rem;
+  --text-hero--line-height: 0.98;
+  --text-hero--letter-spacing: -0.045em;
+  --text-hero--font-weight: 800;
+
+  --text-heading: 1.875rem;
+  --text-heading--line-height: 1.25;
+  --text-heading--letter-spacing: -0.02em;
+  --text-heading--font-weight: 800;
+
+  --text-subheading: 1.3125rem;
+  --text-subheading--line-height: 1.45;
+  --text-subheading--letter-spacing: -0.01em;
   --text-subheading--font-weight: 700;
 
   --text-lead: 1.1875rem;
@@ -80,6 +93,10 @@
   --radius-md: 12px;
   --radius-lg: 14px;
   --radius-xl: 16px;
+  --radius-2xl: 22px;
+
+  --shadow-card: 0 1px 2px rgb(17 17 16 / 0.04), 0 12px 32px -8px rgb(17 17 16 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(17 17 16 / 0.06), 0 24px 48px -12px rgb(17 17 16 / 0.2);
 }
 
 html {
@@ -122,4 +139,85 @@ body {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ── כרטיסייה נהפכת ──────────────────────────────────────────────
+ * האינטראקציה החתומה של המוצר. מסגרת שמחליפה טקסט היא תיבה;
+ * היפוך פיזי הוא כרטיסייה. הגב שחור והפנים לבן — במערכת מונוכרומית
+ * ההיפוך עצמו הוא האפקט.
+ */
+.flip-scene {
+  perspective: 1600px;
+}
+
+.flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.flip-card[data-flipped='true'] {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-card {
+    transition: none;
+  }
+}
+
+/* ── תנועה ────────────────────────────────────────────────────────
+ * שתי תנועות בלבד במערכת: עלייה קצרה כשתוכן נכנס, ולחיצה שנותנת
+ * תחושת מגע. יותר מזה מסיח, ובעיקר בטלפון.
+ */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 620ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+/* משטח שנלחץ — כפתור, כרטיסייה, שורה ברשימה */
+.tap {
+  transition:
+    transform 140ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 220ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.tap:active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  .tap:active {
+    transform: none;
+  }
 }

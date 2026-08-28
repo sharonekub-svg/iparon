@@ -13,17 +13,20 @@ export function DemoTabs() {
 
   return (
     <>
-      <nav className="border-line mt-6 flex gap-1 border-b" aria-label="חלקי החומר">
+      <nav
+        className="bg-surface-sunk mt-6 flex gap-1 rounded-full p-1"
+        aria-label="חלקי החומר"
+      >
         {TABS.map((label, i) => (
           <button
             key={label}
             type="button"
             onClick={() => setActive(i)}
             aria-current={active === i ? 'page' : undefined}
-            className={`text-label -mb-px border-b-2 px-3.5 py-2.5 transition-colors ${
+            className={`text-label tap flex-1 rounded-full px-3.5 py-2.5 ${
               active === i
-                ? 'border-ink text-ink'
-                : 'text-ink-faint hover:text-ink border-transparent'
+                ? 'bg-surface text-ink shadow-card'
+                : 'text-ink-faint hover:text-ink'
             }`}
           >
             {label}

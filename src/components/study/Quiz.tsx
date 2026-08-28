@@ -3,8 +3,12 @@
 import { useState } from 'react';
 
 import { recordQuizAttempt } from '@/app/(app)/sets/[id]/actions';
+import { IconMark } from '@/components/ui/IconMark';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import type { Question } from '@/lib/study';
+
+/** אות לכל תשובה — נותנת לכל אפשרות עוגן ויזואלי במקום ריבוע ריק */
+const LETTERS = ['א', 'ב', 'ג', 'ד', 'ה'];
 
 /**
  * שאלה אחת במסך, משוב מיד אחרי הבחירה.
@@ -58,15 +62,14 @@ export function Quiz({
     const score = Math.round((correctCount / questions.length) * 100);
 
     return (
-      <div className="border-line rounded-lg border px-5 py-8 text-center">
-        <p className="text-display text-ink">
-          <span className="num">{score}</span>
-        </p>
-        <p className="text-small text-ink-body mt-2">
+      <div className="rise bg-ink shadow-lift rounded-2xl px-5 py-12 text-center">
+        <p className="text-meta text-on-ink/50">הציון שלך</p>
+        <p className="num text-figure text-on-ink mt-2">{score}</p>
+        <p className="text-small text-on-ink/70 mt-3">
           ענית נכון על <span className="num">{correctCount}</span> מתוך{' '}
           <span className="num">{questions.length}</span> שאלות.
         </p>
-        <p className="text-meta text-ink-faint mt-3">
+        <p className="text-meta text-on-ink/50 mx-auto mt-4 max-w-xs text-balance">
           {score === 100
             ? 'החומר הזה יושב.'
             : score >= 70
@@ -82,7 +85,7 @@ export function Quiz({
             setAnswers([]);
             setFinished(false);
           }}
-          className="border-line-input text-label text-ink hover:bg-surface-sunk mt-5 rounded-md border px-5 py-2.5"
+          className="bg-on-ink text-label text-ink tap mt-7 rounded-lg px-6 py-3.5 hover:opacity-90"
         >
           לתרגל שוב
         </button>
@@ -106,17 +109,25 @@ export function Quiz({
         <ProgressBar value={index} max={questions.length} />
       </div>
 
-      <h2 className="text-subheading text-ink mt-3">{question.stem}</h2>
+      <h2 className="text-heading text-ink mt-4 text-balance">{question.stem}</h2>
 
-      <div className="mt-5 flex flex-col gap-2.5">
+      <div className="mt-6 flex flex-col gap-2.5">
         {question.options.map((option, i) => {
           const isCorrect = i === question.correct_index;
           const isChosen = i === selected;
 
-          let tone = 'border-line-input text-ink';
-          if (answered && isCorrect) tone = 'border-correct bg-correct-soft text-correct';
-          else if (answered && isChosen) tone = 'border-wrong bg-wrong-soft text-wrong';
-          else if (answered) tone = 'border-line text-ink-faint';
+          let tone = 'border-line-input text-ink hover:border-ink hover:bg-surface';
+          let badge = 'border-line-input text-ink-faint';
+          if (answered && isCorrect) {
+            tone = 'border-correct bg-correct-soft text-correct';
+            badge = 'border-correct bg-correct text-on-ink';
+          } else if (answered && isChosen) {
+            tone = 'border-wrong bg-wrong-soft text-wrong';
+            badge = 'border-wrong bg-wrong text-on-ink';
+          } else if (answered) {
+            tone = 'border-line text-ink-faintest';
+            badge = 'border-line text-ink-faintest';
+          }
 
           return (
             <button
@@ -124,9 +135,19 @@ export function Quiz({
               type="button"
               onClick={() => choose(i)}
               disabled={answered}
-              className={`text-body rounded-md border px-4 py-3.5 text-start transition-colors ${tone}`}
+              className={`text-body tap flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-start ${tone}`}
             >
-              {option}
+              <span
+                aria-hidden="true"
+                className={`text-label flex size-7 shrink-0 items-center justify-center rounded-full border ${badge}`}
+              >
+                {answered && (isCorrect || isChosen) ? (
+                  <IconMark kind={isCorrect ? 'check' : 'cross'} className="size-4" />
+                ) : (
+                  LETTERS[i]
+                )}
+              </span>
+              <span className="flex-1">{option}</span>
             </button>
           );
         })}
@@ -135,14 +156,14 @@ export function Quiz({
       {answered ? (
         <div className="mt-5">
           {question.explanation ? (
-            <p className="text-small text-ink-body bg-surface-sunk rounded-md px-4 py-3">
+            <p className="rise text-small text-ink-body bg-surface-sunk rounded-xl px-4 py-3.5">
               {question.explanation}
             </p>
           ) : null}
           <button
             type="button"
             onClick={next}
-            className="bg-ink text-on-ink text-label mt-4 w-full rounded-md px-6 py-3.5"
+            className="bg-ink text-on-ink text-label tap mt-4 w-full rounded-lg px-6 py-4 hover:opacity-90"
           >
             {index + 1 >= questions.length ? 'לתוצאה' : 'לשאלה הבאה'}
           </button>

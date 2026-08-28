@@ -24,7 +24,7 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="border-line border-b">
+      <header className="border-line bg-paper/80 sticky top-0 z-10 border-b backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
           <Link href="/dashboard" className="text-meta text-ink font-mono">
             {brand.name}

@@ -4,6 +4,9 @@ import { useState } from 'react';
 
 import { submitExam } from '@/app/(app)/sets/[id]/actions';
 
+/** אות לכל תשובה — אותה שפה ויזואלית כמו בתרגול */
+const LETTERS = ['א', 'ב', 'ג', 'ד', 'ה'];
+
 export type ExamQuestion = {
   id: string;
   stem: string;
@@ -75,9 +78,9 @@ export function ExamRunner({
         />
       </div>
 
-      <h2 className="text-subheading text-ink mt-5">{question.stem}</h2>
+      <h2 className="text-heading text-ink mt-4 text-balance">{question.stem}</h2>
 
-      <div className="mt-5 flex flex-col gap-2.5">
+      <div className="mt-6 flex flex-col gap-2.5">
         {question.options.map((option, i) => {
           const chosen = answers[question.id] === i;
           return (
@@ -86,13 +89,23 @@ export function ExamRunner({
               type="button"
               onClick={() => setAnswers({ ...answers, [question.id]: i })}
               aria-pressed={chosen}
-              className={`text-body rounded-md border px-4 py-3.5 text-start transition-colors ${
+              className={`text-body tap flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-start ${
                 chosen
-                  ? 'border-ink bg-surface-sunk text-ink'
-                  : 'border-line-input text-ink-body hover:bg-surface-sunk'
+                  ? 'border-ink bg-surface text-ink shadow-card'
+                  : 'border-line-input text-ink-body hover:border-ink hover:bg-surface'
               }`}
             >
-              {option}
+              <span
+                aria-hidden="true"
+                className={`text-label flex size-7 shrink-0 items-center justify-center rounded-full border ${
+                  chosen
+                    ? 'border-ink bg-ink text-on-ink'
+                    : 'border-line-input text-ink-faint'
+                }`}
+              >
+                {LETTERS[i]}
+              </span>
+              <span className="flex-1">{option}</span>
             </button>
           );
         })}
@@ -112,7 +125,7 @@ export function ExamRunner({
           type="button"
           onClick={() => setIndex(index - 1)}
           disabled={index === 0}
-          className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-5 py-3 disabled:opacity-40"
+          className="border-line-input text-label text-ink hover:bg-surface-sunk tap rounded-lg border px-5 py-3.5 disabled:opacity-40"
         >
           הקודמת
         </button>
@@ -122,7 +135,7 @@ export function ExamRunner({
             type="button"
             onClick={submit}
             disabled={submitting}
-            className="bg-ink text-on-ink text-label flex-1 rounded-md px-6 py-3 disabled:opacity-50"
+            className="bg-ink text-on-ink text-label tap flex-1 rounded-lg px-6 py-3.5 hover:opacity-90 disabled:opacity-50"
           >
             {submitting ? 'בודק...' : 'הגש מבחן'}
           </button>
@@ -130,7 +143,7 @@ export function ExamRunner({
           <button
             type="button"
             onClick={() => setIndex(index + 1)}
-            className="bg-ink text-on-ink text-label flex-1 rounded-md px-6 py-3"
+            className="bg-ink text-on-ink text-label tap flex-1 rounded-lg px-6 py-3.5 hover:opacity-90"
           >
             הבאה
           </button>
