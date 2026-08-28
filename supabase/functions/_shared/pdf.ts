@@ -1,5 +1,7 @@
 import { PDFDocument } from 'npm:pdf-lib@1.17.1';
 
+import { UserError } from './errors.ts';
+
 /**
  * ספירת עמודים ב-PDF, לפני שהוא נשלח למודל.
  *
@@ -18,6 +20,6 @@ export async function countPdfPages(bytes: Uint8Array): Promise<number> {
     const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
     return doc.getPageCount();
   } catch {
-    throw new Error('לא הצלחנו לקרוא את ה-PDF. ייתכן שהוא פגום או מוגן בסיסמה');
+    throw new UserError('לא הצלחנו לקרוא את ה-PDF. ייתכן שהוא פגום או מוגן בסיסמה');
   }
 }

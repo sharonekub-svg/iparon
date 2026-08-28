@@ -14,6 +14,7 @@ import { fail, json, preflight } from '../_shared/http.ts';
 import { analyze, sniffMediaType, type FilePart } from '../_shared/model.ts';
 import { countPdfPages } from '../_shared/pdf.ts';
 import { StudySetError } from '../_shared/studySet.ts';
+import { UserError, userMessage } from '../_shared/errors.ts';
 
 /**
  * POST /process-material   { studySetId }
@@ -57,22 +58,22 @@ async function process(
         .from('materials')
         .download(doc.storage_path as string);
 
-      if (error || !blob) throw new Error('הורדת הקובץ נכשלה');
+      if (error || !blob) throw new Error('storage download failed');
 
       const bytes = new Uint8Array(await blob.arrayBuffer());
       total += bytes.byteLength;
 
       if (bytes.byteLength > limits.maxFileBytes) {
-        throw new Error('אחד הקבצים גדול מדי');
+        throw new UserError('אחד הקבצים גדול מדי');
       }
       if (total > limits.maxTotalBytes) {
-        throw new Error('סך הקבצים גדול מדי. נסה להעלות פחות עמודים');
+        throw new UserError('סך הקבצים גדול מדי. נסה להעלות פחות עמודים');
       }
 
       // הסיומת וה-MIME שהלקוח הצהיר עליהם לא נבדקים כאן — רק התוכן.
       const mediaType = sniffMediaType(bytes);
       if (!mediaType) {
-        throw new Error('אחד הקבצים אינו PDF או תמונה תקינים');
+        throw new UserError('אחד הקבצים אינו PDF או תמונה תקינים');
       }
 
       if (mediaType === 'application/pdf') {
@@ -82,7 +83,7 @@ async function process(
       }
 
       if (pages > limits.maxPages) {
-        throw new Error(
+        throw new UserError(
           `החומר מכיל ${pages} עמודים, ואפשר לעבד עד ${limits.maxPages} בבת אחת. נסה להעלות פחות עמודים`,
         );
       }
@@ -117,12 +118,15 @@ async function process(
       error: message.slice(0, 500),
     });
 
+    // רק שגיאה שנזרקה במפורש כ-UserError מגיעה למסך. השאר — הודעה
+    // כללית, כדי שתקלת תצורה או כשל של ספק לא ייראו כמו באג בקובץ
+    // של התלמיד, ולא יספרו לו איך המערכת בנויה.
     await markFailed(
       c,
       studySetId,
       error instanceof StudySetError
         ? 'העיבוד הצליח אבל התוצאה לא הייתה במבנה הצפוי. נסה שוב.'
-        : message,
+        : userMessage(error),
     );
   }
 }

@@ -1,6 +1,7 @@
 import Anthropic from 'npm:@anthropic-ai/sdk@0.115.0';
 
 import { env } from './env.ts';
+import { UserError } from './errors.ts';
 import { parseStudySet, studySetSchema, type StudySet } from './studySet.ts';
 
 /**
@@ -191,13 +192,13 @@ export async function analyze(
   const message = await stream.finalMessage();
 
   if (message.stop_reason === 'refusal') {
-    throw new Error('המודל סירב לעבד את החומר הזה');
+    throw new UserError('לא הצלחנו לעבד את החומר הזה. נסה חומר אחר.');
   }
   if (
     message.stop_reason === 'max_tokens' ||
     message.stop_reason === 'model_context_window_exceeded'
   ) {
-    throw new Error('החומר ארוך מדי לעיבוד בפעם אחת. נסה להעלות פחות עמודים');
+    throw new UserError('החומר ארוך מדי לעיבוד בפעם אחת. נסה להעלות פחות עמודים');
   }
 
   const text = message.content
