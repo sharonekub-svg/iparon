@@ -109,14 +109,14 @@ export default function LandingPage() {
                 href="/signup"
                 className="bg-ink text-label text-on-ink shadow-card tap inline-flex items-center justify-center gap-2 rounded-lg px-7 py-4 hover:opacity-90"
               >
-                התחל ללמוד
+                הרשמה
                 <ArrowStart />
               </Link>
               <Link
                 href="/demo"
-                className="border-line-input text-label text-ink hover:bg-surface-sunk tap inline-flex items-center justify-center rounded-lg border px-7 py-4"
+                className="border-line-input text-label text-ink hover:border-ink hover:bg-surface tap inline-flex items-center justify-center rounded-lg border px-7 py-4"
               >
-                נסה בלי הרשמה
+                דלג
               </Link>
             </div>
 
@@ -124,7 +124,7 @@ export default function LandingPage() {
               className="rise text-meta text-ink-faint mt-5"
               style={{ '--rise-delay': '240ms' } as React.CSSProperties}
             >
-              חינם להתחלה. בלי כרטיס אשראי.
+              חינם להתחלה, בלי כרטיס אשראי. אפשר גם לדלג ולהציץ בלי חשבון.
             </p>
           </div>
 

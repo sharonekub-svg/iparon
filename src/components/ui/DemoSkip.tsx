@@ -17,7 +17,7 @@ export function DemoSkip() {
         type="button"
         disabled={pending}
         onClick={() => start(() => void signInAsDemo())}
-        className="border-line-input text-label text-ink hover:bg-surface-sunk w-full rounded-md border px-6 py-3.5 transition-colors disabled:opacity-50"
+        className="border-line-input text-label text-ink hover:border-ink hover:bg-surface tap w-full rounded-lg border px-6 py-4 disabled:opacity-50"
       >
         {pending ? 'רגע...' : 'דלג — אני רק רוצה להסתכל'}
       </button>
