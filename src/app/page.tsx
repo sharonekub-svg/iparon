@@ -23,15 +23,20 @@ const steps = [
   {
     n: '03',
     title: 'לומדים ונבחנים',
-    body: 'כרטיסיות, קוויז ומבחן תרגול. בסוף רואים במה אתה חזק ובמה כדאי לחזור.',
+    body: 'כרטיסיות ותרגול, על נושא אחד או על הכול. בסוף רואים במה אתה חזק.',
   },
 ];
 
 const outputs = [
-  { title: 'סיכום', body: 'הנושאים, עיקרי הדברים והמושגים — מסודרים.' },
-  { title: 'כרטיסיות', body: 'שאלה בצד אחד, תשובה בשני. הופכים ומדרגים.' },
-  { title: 'תרגול', body: 'שאלות אמריקאיות עם משוב והסבר מיד אחרי כל בחירה.' },
-  { title: 'מבחן', body: 'מבחן על נושא בודד, או מבחן משותף על כל החומר.' },
+  {
+    title: 'סיכום',
+    body: 'פרק לכל נושא, עיקרי הדברים והמושגים. כל מה שהיה בדף, בלי מילה מיותרת.',
+  },
+  { title: 'כרטיסיות', body: 'שאלה בצד אחד, תשובה מלאה בשני. הופכים ומדרגים.' },
+  {
+    title: 'תרגול',
+    body: 'שאלות אמריקאיות עם משוב מיד. אפשר לתרגל נושא אחד, כמה, או הכול.',
+  },
 ];
 
 function ArrowStart({ className = '' }: { className?: string }) {
@@ -57,18 +62,19 @@ export default function LandingPage() {
   return (
     <>
       <header className="border-line bg-paper/80 sticky top-0 z-10 border-b backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-2.5">
           <span className="text-meta text-ink font-mono">{brand.name}</span>
-          <div className="flex items-center gap-1">
+          {/* שטח נגיעה של 44px גם כשהטקסט קטן — אצבע היא לא סמן עכבר */}
+          <div className="-me-3 flex items-center gap-1">
             <Link
               href="/login"
-              className="text-label text-ink-muted hover:text-ink tap rounded-md px-3 py-2"
+              className="text-label text-ink-muted hover:text-ink tap flex min-h-11 items-center rounded-lg px-3"
             >
               כניסה
             </Link>
             <Link
               href="/signup"
-              className="bg-ink text-label text-on-ink tap rounded-md px-4 py-2 hover:opacity-90"
+              className="bg-ink text-label text-on-ink tap flex min-h-11 items-center rounded-lg px-4 hover:opacity-90"
             >
               הרשמה
             </Link>
@@ -91,14 +97,14 @@ export default function LandingPage() {
             >
               תצלם את המחברת.
               <br />
-              קבל מבחן.
+              תדע את החומר.
             </h1>
 
             <p
               className="rise text-lead text-ink-body mt-6 max-w-md text-pretty"
               style={{ '--rise-delay': '120ms' } as React.CSSProperties}
             >
-              סיכום מלא, כרטיסיות ומבחן תרגול — מכל דף שתעלה. בעברית, ורק מהחומר שלך.
+              סיכום מלא, כרטיסיות ותרגול — מכל דף שתעלה. בעברית, ורק מהחומר שלך.
             </p>
 
             <div
@@ -139,14 +145,14 @@ export default function LandingPage() {
         {/* ── מה מקבלים ───────────────────────────────────────────── */}
         <section aria-labelledby="outputs-heading" className="border-line border-t py-14">
           <h2 id="outputs-heading" className="text-heading text-ink text-balance">
-            העלאה אחת, ארבעה כלים
+            העלאה אחת, שלושה כלים
           </h2>
           <p className="text-small text-ink-body mt-3 max-w-md">
             אין צורך לבקש כל דבר בנפרד. החומר עובר עיבוד אחד, ומה שיוצא ממנו מחכה
             בלשוניות.
           </p>
 
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-8 grid gap-3 sm:grid-cols-3">
             {outputs.map((item) => (
               <li
                 key={item.title}

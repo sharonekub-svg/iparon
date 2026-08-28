@@ -39,8 +39,8 @@ export function StudySetTitle({
 
   if (!editing) {
     return (
-      <div className="mt-3 flex items-start gap-2">
-        <h1 className="text-heading text-ink flex-1">{title}</h1>
+      <div className="mt-3 flex items-start gap-1">
+        <h1 className="text-display text-ink flex-1 text-balance">{title}</h1>
         <button
           type="button"
           onClick={() => {
@@ -48,7 +48,7 @@ export function StudySetTitle({
             setEditing(true);
           }}
           aria-label="שינוי שם החומר"
-          className="text-ink-faint hover:text-ink hover:bg-surface-sunk mt-1 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+          className="text-ink-faint hover:text-ink hover:bg-surface-sunk tap -me-2 flex size-11 shrink-0 items-center justify-center rounded-lg"
         >
           <svg
             viewBox="0 0 16 16"
@@ -92,7 +92,7 @@ export function StudySetTitle({
           type="button"
           onClick={save}
           disabled={saving}
-          className="bg-ink text-on-ink text-label rounded-md px-4 py-2 disabled:opacity-50"
+          className="bg-ink text-on-ink text-label tap min-h-11 rounded-lg px-5 disabled:opacity-50"
         >
           {saving ? 'שומר...' : 'שמור'}
         </button>
@@ -100,7 +100,7 @@ export function StudySetTitle({
           type="button"
           onClick={() => setEditing(false)}
           disabled={saving}
-          className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-4 py-2"
+          className="border-line-input text-label text-ink hover:bg-surface-sunk tap min-h-11 rounded-lg border px-5"
         >
           ביטול
         </button>

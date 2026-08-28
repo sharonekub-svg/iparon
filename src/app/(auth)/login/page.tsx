@@ -12,7 +12,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
 
   return (
     <>
-      <h1 className="text-heading text-ink">כניסה</h1>
+      <h1 className="text-display text-ink">כניסה</h1>
       <p className="text-small text-ink-body mt-2">טוב לראות אותך שוב.</p>
 
       <LoginForm next={typeof next === 'string' ? next : undefined} />

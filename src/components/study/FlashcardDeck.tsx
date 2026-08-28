@@ -116,7 +116,7 @@ export function FlashcardDeck({
           type="button"
           onClick={back}
           disabled={index === 0}
-          className="text-meta text-ink-faint hover:text-ink inline-flex items-center gap-1 transition-colors disabled:opacity-0"
+          className="text-meta text-ink-faint hover:text-ink tap -me-3 inline-flex min-h-11 items-center gap-1 rounded-lg px-3 disabled:opacity-0"
         >
           <IconArrow direction="back" className="size-3.5" />
           הקודמת

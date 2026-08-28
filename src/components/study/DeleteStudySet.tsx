@@ -17,7 +17,7 @@ export function DeleteStudySet({ studySetId }: { studySetId: string }) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="text-meta text-ink-faint hover:text-wrong transition-colors"
+        className="text-meta text-ink-faint hover:text-wrong tap -ms-3 inline-flex min-h-11 items-center rounded-lg px-3"
       >
         מחיקת החומר
       </button>
@@ -25,7 +25,7 @@ export function DeleteStudySet({ studySetId }: { studySetId: string }) {
   }
 
   return (
-    <div className="border-line flex flex-col gap-3 rounded-md border px-4 py-3.5">
+    <div className="border-line-strong bg-surface flex flex-col gap-3 rounded-xl border px-4 py-4">
       <p className="text-small text-ink">
         למחוק את החומר? הסיכום, הכרטיסיות, השאלות והתוצאות יימחקו איתו.
       </p>
@@ -34,7 +34,7 @@ export function DeleteStudySet({ studySetId }: { studySetId: string }) {
           type="button"
           disabled={pending}
           onClick={() => start(() => void deleteStudySet(studySetId))}
-          className="bg-wrong text-label rounded-md px-4 py-2.5 text-white disabled:opacity-50"
+          className="bg-wrong text-label tap min-h-11 rounded-lg px-5 text-white disabled:opacity-50"
         >
           {pending ? 'מוחק...' : 'כן, מחק'}
         </button>
@@ -42,7 +42,7 @@ export function DeleteStudySet({ studySetId }: { studySetId: string }) {
           type="button"
           disabled={pending}
           onClick={() => setConfirming(false)}
-          className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-4 py-2.5"
+          className="border-line-input text-label text-ink hover:bg-surface-sunk tap min-h-11 rounded-lg border px-5"
         >
           ביטול
         </button>

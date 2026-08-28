@@ -38,7 +38,7 @@ export function Field({
         required={required}
         defaultValue={defaultValue}
         aria-describedby={hint ? `${name}-hint` : undefined}
-        className="border-line-input text-body text-ink placeholder:text-ink-faintest focus:border-ink rounded-md border bg-white px-3.5 py-3 outline-none"
+        className="border-line-input text-body text-ink placeholder:text-ink-faintest focus:border-ink rounded-xl border bg-white px-4 py-3.5 transition-colors outline-none"
       />
       {hint ? (
         <p id={`${name}-hint`} className="text-meta text-ink-faint">

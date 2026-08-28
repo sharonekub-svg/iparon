@@ -69,8 +69,8 @@ export function HeroCard() {
         </button>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <div className="flex gap-1.5" aria-hidden="true">
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <div className="flex gap-1.5 py-4" aria-hidden="true">
           {CARDS.map((item, i) => (
             <span
               key={item.front}
@@ -83,7 +83,7 @@ export function HeroCard() {
         <button
           type="button"
           onClick={advance}
-          className="text-meta text-ink-faint hover:text-ink tap"
+          className="text-meta text-ink-faint hover:text-ink tap -me-3 flex min-h-11 items-center rounded-lg px-3"
         >
           כרטיסייה הבאה
         </button>

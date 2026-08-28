@@ -3,14 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+/**
+ * שלוש הלשוניות של החומר.
+ *
+ * המבחן הוסר מהניווט לבקשת המוצר: התרגול קיבל בחירת היקף, והוא מכסה
+ * את אותו צורך בלי לפצל את המסך לשניים. המסלול `/sets/[id]/exam` והקוד
+ * שלו נשארו במקומם, כך שהחזרה שלו היא שורה אחת כאן.
+ */
 const tabs = [
   { slug: '', label: 'סיכום' },
   { slug: '/flashcards', label: 'כרטיסיות' },
   { slug: '/quiz', label: 'תרגול' },
-  { slug: '/exam', label: 'מבחן' },
 ] as const;
 
-export function StudyTabs({ id, examsLocked }: { id: string; examsLocked: boolean }) {
+export function StudyTabs({ id }: { id: string }) {
   const pathname = usePathname();
   const base = `/sets/${id}`;
 
@@ -27,22 +33,12 @@ export function StudyTabs({ id, examsLocked }: { id: string; examsLocked: boolea
           <Link
             key={tab.slug}
             href={href}
-            aria-label={
-              tab.slug === '/exam' && examsLocked
-                ? `${tab.label} — במסלול המורחב`
-                : undefined
-            }
             aria-current={active ? 'page' : undefined}
             className={`text-label tap flex-1 rounded-full px-3.5 py-2.5 text-center ${
               active ? 'bg-surface text-ink shadow-card' : 'text-ink-faint hover:text-ink'
             }`}
           >
             {tab.label}
-            {tab.slug === '/exam' && examsLocked ? (
-              <span aria-hidden="true" className="text-ink-faintest ms-1">
-                🔒
-              </span>
-            ) : null}
           </Link>
         );
       })}

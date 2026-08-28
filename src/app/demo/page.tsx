@@ -13,13 +13,16 @@ export default function DemoPage() {
   return (
     <div className="flex min-h-full flex-col">
       <header className="border-line bg-paper/80 sticky top-0 z-10 border-b backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
-          <Link href="/" className="text-meta text-ink font-mono">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-2.5">
+          <Link
+            href="/"
+            className="text-meta text-ink tap -ms-3 flex min-h-11 items-center rounded-lg px-3 font-mono"
+          >
             {brand.name}
           </Link>
           <Link
             href="/signup"
-            className="text-label text-ink-muted hover:text-ink transition-colors"
+            className="bg-ink text-label text-on-ink tap -me-2 flex min-h-11 items-center rounded-lg px-4 hover:opacity-90"
           >
             הרשמה
           </Link>

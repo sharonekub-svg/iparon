@@ -10,7 +10,7 @@ export const metadata = { title: 'הרשמה' };
 export default function SignupPage() {
   return (
     <>
-      <h1 className="text-heading text-ink">הרשמה</h1>
+      <h1 className="text-display text-ink">הרשמה</h1>
       <p className="text-small text-ink-body mt-2">חשבון חינם. לוקח פחות מדקה.</p>
 
       <SignupForm />

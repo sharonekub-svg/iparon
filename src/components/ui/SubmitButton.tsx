@@ -19,7 +19,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={pending}
-      className="bg-ink text-on-ink text-label rounded-md px-6 py-3.5 transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-4 hover:opacity-90 disabled:opacity-50"
     >
       {pending ? pendingLabel : children}
     </button>

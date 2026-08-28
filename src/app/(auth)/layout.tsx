@@ -6,8 +6,11 @@ export default function AuthLayout({ children }: LayoutProps<'/'>) {
   return (
     <div className="flex min-h-full flex-col">
       <header className="border-line border-b">
-        <div className="mx-auto max-w-3xl px-5 py-4">
-          <Link href="/" className="text-meta text-ink font-mono">
+        <div className="mx-auto max-w-3xl px-5 py-2.5">
+          <Link
+            href="/"
+            className="text-meta text-ink tap -ms-3 inline-flex min-h-11 items-center rounded-lg px-3 font-mono"
+          >
             {brand.name}
           </Link>
         </div>
