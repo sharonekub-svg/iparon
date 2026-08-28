@@ -122,6 +122,18 @@ export async function startProcessing(
 
   if (!user) return { ok: false, error: 'לא מחובר' };
 
+  // הנתיב מגיע מהלקוח, ולכן הוא לא נאמן. בלי הבדיקה הזאת אפשר לשלוח
+  // נתיב של קובץ של משתמש אחר: העובד רץ ב-service role, שעוקף גם RLS
+  // וגם את מדיניות ה-Storage, והיה מייצר ממנו חומר לימוד אצל התוקף.
+  //
+  // האכיפה האמיתית היא constraint על documents. זה כאן כדי שהמשתמש
+  // יקבל הודעה מובנת ולא שגיאת מסד.
+  const prefix = `${user.id}/`;
+  if (docs.some((doc) => !doc.path.startsWith(prefix))) {
+    console.error('[upload:path]', user.id, 'ניסיון לרשום נתיב מחוץ לתיקייה של המשתמש');
+    return { ok: false, error: 'משהו השתבש בהעלאה. נסה שוב.' };
+  }
+
   const { error: docError } = await supabase.from('documents').insert(
     docs.map((doc) => ({
       study_set_id: studySetId,
