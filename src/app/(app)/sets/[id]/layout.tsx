@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { DeleteStudySet } from '@/components/study/DeleteStudySet';
 import { StudyTabs } from '@/components/study/StudyTabs';
 import { getEntitlements } from '@/lib/plans';
 import { getStudySet } from '@/lib/study';
@@ -29,6 +30,10 @@ export default async function StudySetLayout({
       <StudyTabs id={id} examsLocked={!entitlements.examsEnabled} />
 
       <div className="mt-6">{children}</div>
+
+      <div className="border-line mt-12 border-t pt-6">
+        <DeleteStudySet studySetId={id} />
+      </div>
     </>
   );
 }

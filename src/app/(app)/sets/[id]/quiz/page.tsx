@@ -9,5 +9,5 @@ export default async function QuizPage({ params }: PageProps<'/sets/[id]/quiz'>)
     return <p className="text-small text-ink-muted">אין עדיין שאלות תרגול לחומר הזה.</p>;
   }
 
-  return <Quiz questions={questions} />;
+  return <Quiz questions={questions} studySetId={id} />;
 }

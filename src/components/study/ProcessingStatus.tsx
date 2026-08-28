@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { retryProcessing } from '@/app/(app)/sets/[id]/actions';
 import { getProgress } from '@/app/(app)/upload/actions';
 
 /**
@@ -23,6 +25,8 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
   const router = useRouter();
   const [stage, setStage] = useState('queued');
   const [failed, setFailed] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -52,17 +56,59 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
     };
   }, [studySetId, router]);
 
+  async function retry() {
+    setRetrying(true);
+    setRetryError(null);
+
+    const result = await retryProcessing(studySetId);
+
+    if (!result.ok) {
+      setRetryError(result.error);
+      setRetrying(false);
+      return;
+    }
+
+    // חוזרים למעקב. הקבצים כבר באחסון, ולכן זו לא העלאה חדשה.
+    setFailed(null);
+    setStage('queued');
+    setRetrying(false);
+  }
+
   if (failed) {
     return (
       <div className="border-line rounded-lg border px-5 py-8">
         <h1 className="text-subheading text-ink">העיבוד נכשל</h1>
         <p className="text-small text-ink-body mt-2">{failed}</p>
-        <a
-          href="/upload"
-          className="border-line-input text-label text-ink hover:bg-surface-sunk mt-5 inline-block rounded-md border px-5 py-2.5"
-        >
-          לנסות שוב
-        </a>
+
+        {retryError ? (
+          <p
+            role="alert"
+            className="text-small bg-wrong-soft text-wrong mt-4 rounded-md px-4 py-3"
+          >
+            {retryError}
+          </p>
+        ) : null}
+
+        <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+          <button
+            type="button"
+            onClick={retry}
+            disabled={retrying}
+            className="bg-ink text-on-ink text-label rounded-md px-5 py-3 disabled:opacity-50"
+          >
+            {retrying ? 'מתחיל...' : 'נסה שוב'}
+          </button>
+          <Link
+            href="/dashboard"
+            className="border-line-input text-label text-ink hover:bg-surface-sunk rounded-md border px-5 py-3 text-center"
+          >
+            לחומרים שלי
+          </Link>
+        </div>
+
+        <p className="text-meta text-ink-faint mt-4">
+          הקבצים שהעלית שמורים. ניסיון חוזר לא מבזבז לך עוד העלאה.
+        </p>
       </div>
     );
   }

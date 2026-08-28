@@ -50,6 +50,24 @@ export async function prepareUpload(files: FileMeta[]): Promise<Result<PreparedU
     return { ok: false, error: 'סך הקבצים גדול מדי. נסה להעלות פחות עמודים' };
   }
 
+  // ניקוי שורות יתומות של המשתמש עצמו: אם הדפדפן נפל בין יצירת החומר
+  // לבין ההעלאה, נשארה שורה queued בלי קבצים שתופסת לו מכסה לנצח.
+  // נעשה כאן ולא בעבודת רקע — זה הרגע היחיד שבו זה מפריע למישהו.
+  const staleBefore = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { data: stale } = await supabase
+    .from('study_sets')
+    .select('id, documents(count)')
+    .eq('status', 'queued')
+    .lt('created_at', staleBefore);
+
+  const orphans = (stale ?? [])
+    .filter((row) => (row.documents?.[0]?.count ?? 0) === 0)
+    .map((row) => row.id as string);
+
+  if (orphans.length > 0) {
+    await supabase.from('study_sets').delete().in('id', orphans);
+  }
+
   // כותרת זמנית. המודל מחזיר כותרת אמיתית, והיא נכתבת בסוף העיבוד.
   const { data: set, error: setError } = await supabase
     .from('study_sets')

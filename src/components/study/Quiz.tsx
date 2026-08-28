@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { recordQuizAttempt } from '@/app/(app)/sets/[id]/actions';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import type { Question } from '@/lib/study';
 
@@ -12,11 +13,22 @@ import type { Question } from '@/lib/study';
  * המיידי שווה יותר מההגנה — הרמאות היחידה האפשרית היא בתלמיד עם עצמו.
  * במבחן זה הפוך, והניקוד נעשה בשרת.
  */
-export function Quiz({ questions }: { questions: Question[] }) {
+export function Quiz({
+  questions,
+  studySetId,
+}: {
+  questions: Question[];
+  /** בדמו הציבורי אין חומר ואין משתמש, ולכן אין מה לשמור. */
+  studySetId?: string;
+}) {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
+  /** נאסף כדי לשמור את הניסיון בסוף — הנכונות נקבעת בשרת, לא כאן */
+  const [answers, setAnswers] = useState<
+    { question_id: string; selected_index: number }[]
+  >([]);
 
   const question = questions[index];
   const answered = selected !== null;
@@ -24,12 +36,18 @@ export function Quiz({ questions }: { questions: Question[] }) {
   function choose(option: number) {
     if (answered) return;
     setSelected(option);
+    setAnswers((prev) => [...prev, { question_id: question.id, selected_index: option }]);
     if (option === question.correct_index) setCorrectCount((c) => c + 1);
   }
 
   function next() {
     if (index + 1 >= questions.length) {
       setFinished(true);
+      // נשמר ברקע: התוצאה כבר על המסך, ומה שנשאר הוא להזין את חישוב
+      // השליטה. כישלון שמירה לא צריך לחסום את המסך.
+      if (studySetId && answers.length > 0) {
+        void recordQuizAttempt(studySetId, answers);
+      }
     } else {
       setIndex(index + 1);
       setSelected(null);
@@ -61,6 +79,7 @@ export function Quiz({ questions }: { questions: Question[] }) {
             setIndex(0);
             setSelected(null);
             setCorrectCount(0);
+            setAnswers([]);
             setFinished(false);
           }}
           className="border-line-input text-label text-ink hover:bg-surface-sunk mt-5 rounded-md border px-5 py-2.5"

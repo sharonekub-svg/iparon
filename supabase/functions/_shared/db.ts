@@ -81,7 +81,7 @@ export async function checkCaps(c: SupabaseClient, userId: string): Promise<CapC
   }
 
   const { data: mine } = await c.rpc('user_uploads_this_month', { target_user: userId });
-  if (((mine as number) ?? 0) > caps.max_uploads_per_user_per_month) {
+  if (((mine as number) ?? 0) >= caps.max_uploads_per_user_per_month) {
     return {
       allowed: false,
       reason: `הגעת למכסה החודשית שלך (${caps.max_uploads_per_user_per_month} העלאות). המכסה מתאפסת בתחילת החודש.`,
@@ -161,4 +161,40 @@ export async function writeStudySet(
       error: null,
     })
     .eq('id', studySetId);
+}
+
+/**
+ * מחיקת קבצי המקור אחרי עיבוד מוצלח.
+ *
+ * אחרי שהחומר נכתב אין לקובץ שום שימוש — הסיכום, הכרטיסיות והשאלות
+ * כבר במסד. שמירתו עולה מכסת אחסון, ומחזיקה חומר של קטינים בלי סיבה.
+ *
+ * **רק בהצלחה.** אחרי כישלון הקובץ נשאר, כדי שניסיון חוזר לא יחייב
+ * העלאה מחדש ולא יבזבז מכסה נוספת.
+ */
+export async function purgeSourceFiles(
+  c: SupabaseClient,
+  studySetId: string,
+): Promise<void> {
+  const { data: docs } = await c
+    .from('documents')
+    .select('id, storage_path')
+    .eq('study_set_id', studySetId)
+    .is('deleted_at', null);
+
+  if (!docs || docs.length === 0) return;
+
+  const paths = docs.map((d) => d.storage_path as string);
+  const { error } = await c.storage.from('materials').remove(paths);
+
+  if (error) {
+    // לא מפילים את העיבוד בגלל ניקיון. החומר מוכן, והקובץ יימחק בפעם הבאה.
+    console.error('[purge]', studySetId, error.message);
+    return;
+  }
+
+  await c
+    .from('documents')
+    .update({ deleted_at: new Date().toISOString() })
+    .in('id', docs.map((d) => d.id as string));
 }

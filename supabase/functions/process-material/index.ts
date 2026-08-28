@@ -7,6 +7,7 @@ import {
   recordCall,
   setStage,
   writeStudySet,
+  purgeSourceFiles,
 } from '../_shared/db.ts';
 import { env, limits } from '../_shared/env.ts';
 import { fail, json, preflight } from '../_shared/http.ts';
@@ -81,6 +82,9 @@ async function process(
 
     await setStage(c, studySetId, 'writing');
     await writeStudySet(c, studySetId, studySet);
+
+    // החומר מוכן, ולקובץ אין יותר שימוש.
+    await purgeSourceFiles(c, studySetId);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'שגיאה לא מזוהה';
     console.error('[process-material]', studySetId, message);

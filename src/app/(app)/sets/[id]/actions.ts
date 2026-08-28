@@ -1,5 +1,8 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
 import { createServerSupabase } from '@/lib/supabase/server';
 
 /**
@@ -99,4 +102,94 @@ export async function submitExam(
   }
 
   return { ok: true, data: (data as number) ?? 0 };
+}
+
+export async function recordQuizAttempt(
+  studySetId: string,
+  answers: { question_id: string; selected_index: number }[],
+): Promise<ActionResult<number>> {
+  const supabase = await createServerSupabase();
+
+  const { data, error } = await supabase.rpc('record_quiz_attempt', {
+    p_study_set_id: studySetId,
+    p_answers: answers,
+  });
+
+  if (error) {
+    console.error('[quiz:record]', error.message);
+    return { ok: false, error: 'התוצאה לא נשמרה' };
+  }
+
+  return { ok: true, data: (data as number) ?? 0 };
+}
+
+/**
+ * ניסיון עיבוד חוזר על חומר שנכשל.
+ *
+ * הקבצים כבר באחסון, ולכן אין העלאה מחדש ואין מכסה נוספת — זו אותה
+ * שורה, אותם מסמכים, קריאה שנייה לעובד.
+ */
+export async function retryProcessing(studySetId: string): Promise<ActionResult<null>> {
+  const supabase = await createServerSupabase();
+
+  const { data: set } = await supabase
+    .from('study_sets')
+    .select('status')
+    .eq('id', studySetId)
+    .maybeSingle();
+
+  if (!set) return { ok: false, error: 'החומר לא נמצא' };
+  if (set.status !== 'failed') {
+    return { ok: false, error: 'אפשר לנסות שוב רק חומר שנכשל' };
+  }
+
+  const { count } = await supabase
+    .from('documents')
+    .select('id', { count: 'exact', head: true })
+    .eq('study_set_id', studySetId)
+    .is('deleted_at', null);
+
+  if (!count) {
+    return { ok: false, error: 'הקבצים כבר לא קיימים. צריך להעלות מחדש.' };
+  }
+
+  const { error } = await supabase.functions.invoke('process-material', {
+    body: { studySetId },
+  });
+
+  if (error) {
+    console.error('[retry:invoke]', error.message);
+    return { ok: false, error: 'ההפעלה מחדש נכשלה. נסה שוב.' };
+  }
+
+  return { ok: true, data: null };
+}
+
+/**
+ * מחיקת חומר. ה-cascade מוריד איתו נושאים, סיכום, כרטיסיות, שאלות
+ * וניסיונות. קבצי המקור באחסון נמחקים כאן במפורש, כי Storage לא
+ * מקושר ל-FK.
+ */
+export async function deleteStudySet(studySetId: string): Promise<void> {
+  const supabase = await createServerSupabase();
+
+  const { data: docs } = await supabase
+    .from('documents')
+    .select('storage_path')
+    .eq('study_set_id', studySetId);
+
+  const paths = (docs ?? []).map((d) => d.storage_path as string);
+  if (paths.length > 0) {
+    const { error } = await supabase.storage.from('materials').remove(paths);
+    if (error) console.error('[delete:storage]', error.message);
+  }
+
+  const { error } = await supabase.from('study_sets').delete().eq('id', studySetId);
+  if (error) {
+    console.error('[delete:set]', error.message);
+    return;
+  }
+
+  revalidatePath('/dashboard');
+  redirect('/dashboard');
 }
