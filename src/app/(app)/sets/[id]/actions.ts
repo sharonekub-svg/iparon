@@ -193,3 +193,34 @@ export async function deleteStudySet(studySetId: string): Promise<void> {
   revalidatePath('/dashboard');
   redirect('/dashboard');
 }
+
+/**
+ * שינוי שם לחומר.
+ *
+ * ל-authenticated יש grant של update על עמודת title בלבד, ולכן גם אם
+ * מישהו יקרא ל-API ישירות הוא לא יוכל לגעת ב-status או ב-stage.
+ */
+export async function renameStudySet(
+  studySetId: string,
+  title: string,
+): Promise<ActionResult<string>> {
+  const trimmed = title.trim();
+
+  if (trimmed.length === 0) return { ok: false, error: 'צריך שם' };
+  if (trimmed.length > 200) return { ok: false, error: 'השם ארוך מדי' };
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase
+    .from('study_sets')
+    .update({ title: trimmed })
+    .eq('id', studySetId);
+
+  if (error) {
+    console.error('[set:rename]', error.message);
+    return { ok: false, error: 'השם לא נשמר' };
+  }
+
+  revalidatePath(`/sets/${studySetId}`);
+  revalidatePath('/dashboard');
+  return { ok: true, data: trimmed };
+}

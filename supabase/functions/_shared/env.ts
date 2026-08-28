@@ -37,4 +37,6 @@ export const limits = {
   maxFileBytes: 15 * 1024 * 1024,
   maxTotalBytes: 25 * 1024 * 1024,
   maxFiles: 20,
+  /** עמודים, לא קבצים. PDF בודד יכול להכיל מאות. */
+  maxPages: 20,
 } as const;

@@ -12,6 +12,7 @@ import {
 import { env, limits } from '../_shared/env.ts';
 import { fail, json, preflight } from '../_shared/http.ts';
 import { analyze, sniffMediaType, type FilePart } from '../_shared/model.ts';
+import { countPdfPages } from '../_shared/pdf.ts';
 import { StudySetError } from '../_shared/studySet.ts';
 
 /**
@@ -48,6 +49,8 @@ async function process(
 
     const parts: FilePart[] = [];
     let total = 0;
+    // תמונה = עמוד אחד. PDF = מספר העמודים שבו.
+    let pages = 0;
 
     for (const doc of docs) {
       const { data: blob, error } = await c.storage
@@ -72,8 +75,24 @@ async function process(
         throw new Error('אחד הקבצים אינו PDF או תמונה תקינים');
       }
 
+      if (mediaType === 'application/pdf') {
+        pages += await countPdfPages(bytes);
+      } else {
+        pages += 1;
+      }
+
+      if (pages > limits.maxPages) {
+        throw new Error(
+          `החומר מכיל ${pages} עמודים, ואפשר לעבד עד ${limits.maxPages} בבת אחת. נסה להעלות פחות עמודים`,
+        );
+      }
+
       parts.push({ mediaType, base64: encodeBase64(bytes) });
     }
+
+    // מספר העמודים האמיתי. קודם נשמר כאן מספר הקבצים, ולכן PDF של
+    // 30 עמודים הוצג בדשבורד כ"עמוד אחד".
+    await c.from('study_sets').update({ page_count: pages }).eq('id', studySetId);
 
     await setStage(c, studySetId, 'analyzing');
     const { studySet, usage } = await analyze(parts);

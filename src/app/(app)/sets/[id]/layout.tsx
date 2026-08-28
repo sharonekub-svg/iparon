@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { DeleteStudySet } from '@/components/study/DeleteStudySet';
+import { StudySetTitle } from '@/components/study/StudySetTitle';
 import { StudyTabs } from '@/components/study/StudyTabs';
 import { getEntitlements } from '@/lib/plans';
 import { getStudySet } from '@/lib/study';
@@ -21,7 +22,7 @@ export default async function StudySetLayout({
         חזרה לחומרים
       </Link>
 
-      <h1 className="text-heading text-ink mt-3">{set.title}</h1>
+      <StudySetTitle studySetId={id} initialTitle={set.title} />
       <p className="text-meta text-ink-faint mt-1.5">
         {set.subject ? `${set.subject} · ` : ''}
         <span className="num">{set.page_count}</span> עמודים
