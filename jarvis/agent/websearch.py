@@ -53,6 +53,26 @@ def _attrs(raw: str) -> dict:
     return {k.lower(): v for k, v in ATTR_RE.findall(raw)}
 
 
+# סימנים לדף חסימה או אתגר במקום תוצאות
+CHALLENGE_HINTS = (
+    "anomaly", "captcha", "challenge", "unusual traffic", "are you a robot",
+    "blocked", "detected unusual", "verify you", "cf-browser-verification",
+    "just a moment", "enable javascript",
+)
+
+
+def _looks_like_challenge(page: str) -> str | None:
+    """מחזיר את הסימן שנמצא, או None. דף אתגר אינו כישלון רשת —
+    הוא סירוב מכוון, וצריך להגיד את זה במילים ולא 'אין תוצאות'."""
+    low = page.lower()
+    for hint in CHALLENGE_HINTS:
+        if hint in low:
+            return hint
+    if low.count("<a ") < 3:
+        return "הדף כמעט בלי קישורים"
+    return None
+
+
 class SearchUnavailable(Exception):
     """החיפוש לא זמין. נאמר בקול — אף פעם לא מחזירים ריק כאילו אין תוצאות."""
 
@@ -153,7 +173,10 @@ def search(query: str, limit: int = 6) -> list[dict]:
         results = _parse(page, limit)
         if results:
             return results
-        tried.append(f"{name}: ענה, אבל בלי תוצאות שידעתי לקרוא")
+        hint = _looks_like_challenge(page)
+        tried.append(f"{name}: " + (
+            f"הגיש דף חסימה/אתגר ({hint})" if hint
+            else f"ענה {len(page)} תווים אבל בלי תוצאות שידעתי לקרוא"))
 
     raise SearchUnavailable(
         "כל מנועי החיפוש החינמיים נכשלו. " + " | ".join(tried))
@@ -221,10 +244,40 @@ def diagnose():
         print("  זה לא מעיד על שאר החיבורים — הם נבדקו בנפרד.")
 
 
+def dump():
+    """שומר את מה שכל מנוע באמת מחזיר, כדי שאפשר יהיה להסתכל בעיניים."""
+    import os
+    folder = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), ".state")
+    os.makedirs(folder, exist_ok=True)
+
+    for i, (name, url_of) in enumerate(ENGINES, 1):
+        print(f"\n{'=' * 60}\n{name}\n{'=' * 60}")
+        try:
+            page = _fetch(url_of("test"))
+        except Exception as exc:
+            print("  נכשל:", _why(exc))
+            continue
+
+        path = os.path.join(folder, f"dump{i}.html")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(page)
+
+        hint = _looks_like_challenge(page)
+        print(f"  אורך: {len(page)} תווים")
+        print(f"  קישורים בדף: {page.lower().count('<a ')}")
+        print(f"  אתגר/חסימה: {hint or 'לא זוהה'}")
+        print(f"  נשמר: {path}")
+        print("  ── 600 התווים הראשונים ──")
+        print(re.sub(r"\s+", " ", page[:600]))
+
+
 if __name__ == "__main__":
     import sys, json
     args = sys.argv[1:]
-    if not args or args[0] == "--diag":
+    if args and args[0] == "--dump":
+        dump()
+    elif not args or args[0] == "--diag":
         diagnose()
     else:
         try:
