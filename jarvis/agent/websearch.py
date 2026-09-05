@@ -174,34 +174,51 @@ def diagnose():
         ("duckduckgo.com", "https://duckduckgo.com/html/?q=test"),
     ]
 
-    net_ok = False
+    reached, dns_failed, search_ok = [], [], []
     for label, url in checks:
+        is_search = "duckduckgo" in url
         try:
             req = urllib.request.Request(url, headers=HEADERS, method="GET")
             with urllib.request.urlopen(req, timeout=15) as resp:
                 size = len(resp.read(4000))
             print(f"  ✓  {label:<24} עונה ({resp.status}, {size} בייטים)")
-            if label.startswith("האינטרנט"):
-                net_ok = True
+            reached.append(label)
+            if is_search:
+                search_ok.append(label)
         except urllib.error.HTTPError as exc:
-            # 401 מ-Anthropic זה בסדר גמור: הגענו, רק אין מפתח
-            mark = "✓" if exc.code in (401, 403) else "✗"
-            note = " (הגענו — חסר מפתח)" if exc.code == 401 else ""
-            print(f"  {mark}  {label:<24} HTTP {exc.code}{note}")
-            if label.startswith("האינטרנט"):
-                net_ok = True
+            # כל תשובת HTTP — גם 401 וגם 404 — מוכיחה שהגענו לשרת.
+            # רק חסימה אמיתית מסומנת באיקס.
+            blocked = exc.code in (403, 429)
+            note = {401: " (הגענו — חסר מפתח)",
+                    404: " (הגענו — הנתיב לא קיים, וזה בסדר)",
+                    403: " (נחסם)", 429: " (יותר מדי בקשות)"}.get(exc.code, " (הגענו)")
+            print(f"  {'✗' if blocked else '✓'}  {label:<24} HTTP {exc.code}{note}")
+            if not blocked:
+                reached.append(label)
+                if is_search:
+                    search_ok.append(label)
         except Exception as exc:
-            print(f"  ✗  {label:<24} {_why(exc)}")
+            why = _why(exc)
+            print(f"  ✗  {label:<24} {why}")
+            if "getaddrinfo" in why or "11001" in why:
+                dns_failed.append(label)
 
     print()
-    if not net_ok:
+    if not reached:
         print("מסקנה: אין גישה לאינטרנט מפייתון בכלל.")
         print("  כנראה חומת אש, אנטי-וירוס, או רשת של בית ספר.")
+    elif search_ok:
+        print("מסקנה: החיפוש החינמי אמור לעבוד.")
+        print(f"  {len(search_ok)} מנועים ענו. נסה:  python agent/websearch.py רעיונות לאתר")
     else:
-        print("מסקנה: האינטרנט עובד מפייתון.")
-        print("  אם רק מנועי החיפוש נכשלו — הם חוסמים בקשות אוטומטיות,")
-        print("  וזה לא משהו שמתקנים בקוד. הפתרון הוא מפתח Anthropic,")
+        print("מסקנה: האינטרנט עובד, אבל מנועי החיפוש חוסמים בקשות אוטומטיות.")
+        print("  זה לא משהו שמתקנים בקוד. הפתרון הוא מפתח Anthropic,")
         print("  שנותן חיפוש אמיתי דרך השרתים שלהם.")
+
+    if dns_failed:
+        print()
+        print(f"  הערה: {', '.join(dns_failed)} נכשל בפענוח שם (DNS) בלבד.")
+        print("  זה לא מעיד על שאר החיבורים — הם נבדקו בנפרד.")
 
 
 if __name__ == "__main__":
