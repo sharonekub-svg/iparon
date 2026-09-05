@@ -8,9 +8,17 @@ seed קבוע -> אותו גרף בדיוק בכל הרצה. אין כאן שו�
 """
 
 import os
+import sys
 import random
 import shutil
 import datetime
+
+# בקונסולה של ווינדוס קידוד ברירת המחדל אינו UTF-8 והדפסת עברית מפילה
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 SEED = 1337
 HERE = os.path.dirname(os.path.abspath(__file__))

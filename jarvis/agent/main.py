@@ -18,6 +18,14 @@ ROOT = os.path.dirname(HERE)
 UI = os.path.join(ROOT, "ui")
 sys.path.insert(0, HERE)
 
+# בקונסולה של ווינדוס קידוד ברירת המחדל אינו UTF-8, והדפסת עברית
+# מפילה את התוכנית ב-UnicodeEncodeError לפני שהשרת בכלל עולה.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 
 # ── .env ──────────────────────────────────────────────────────────────
 def load_env():
@@ -25,9 +33,10 @@ def load_env():
     path = os.path.join(ROOT, ".env")
     if not os.path.exists(path):
         return
-    mode = os.stat(path).st_mode & 0o777
-    if mode & 0o077:
-        print(f"⚠  ל-.env יש הרשאות {oct(mode)}. הרץ: chmod 600 .env")
+    if os.name != "nt":   # לווינדוס אין הרשאות יוניקס — האזהרה תהיה שקרית
+        mode = os.stat(path).st_mode & 0o777
+        if mode & 0o077:
+            print(f"⚠  ל-.env יש הרשאות {oct(mode)}. הרץ: chmod 600 .env")
     with open(path, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -283,8 +292,11 @@ def main():
     except KeyboardInterrupt:
         print("\nנעצר.")
     except OSError as exc:
-        if exc.errno in (48, 98):
-            print(f"\nהפורט {port} תפוס. הרץ עם JARVIS_PORT=8766")
+        # 48 מק, 98 לינוקס, 10048 ווינדוס
+        if exc.errno in (48, 98, 10048):
+            print(f"\nהפורט {port} תפוס.")
+            print(f"  מק/לינוקס:  JARVIS_PORT=8766 python3 agent/main.py")
+            print(f"  ווינדוס:    set JARVIS_PORT=8766  ואז  python agent\\main.py")
             sys.exit(1)
         raise
 
