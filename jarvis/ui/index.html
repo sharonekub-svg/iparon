@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ג'ארוויס</title>
+  <link rel="stylesheet" href="/ui/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='none' stroke='%234fd3e4' stroke-width='2'/><circle cx='16' cy='16' r='3' fill='%234fd3e4'/></svg>">
+</head>
+<body>
+
+<canvas id="graph"></canvas>
+
+<div id="status"><div class="badge">טוען…</div></div>
+
+<!-- שמאל: מפקח + רכזות -->
+<section class="panel" id="inspector">
+  <h2>ההערה שנבחרה</h2>
+  <div class="scroll" id="inspector-body">
+    <div class="empty">
+      לחץ על צומת בגרף כדי לפתוח אותו כאן.<br><br>
+      Shift + לחיצה על צומת שני מסמן את המסלול הקצר ביותר בין השניים.
+    </div>
+  </div>
+  <div id="hubs">
+    <h2>הכי מקושרים</h2>
+    <div class="scroll" id="hubs-list"></div>
+  </div>
+</section>
+
+<!-- ימין: מסננים + ריאקטור -->
+<div id="right">
+  <section class="panel" id="filters">
+    <h2>סוגים</h2>
+    <div class="scroll" id="filters-list"></div>
+  </section>
+  <section class="panel" id="reactor">
+    <canvas id="reactor-canvas" width="148" height="148"></canvas>
+    <div id="reactor-state">ממתין</div>
+  </section>
+</div>
+
+<!-- תחתית: שיחה + שורת שאלה -->
+<div id="bottom">
+  <div id="transcript" class="scroll"></div>
+
+  <div id="ask-row">
+    <button class="btn" id="mic" title="מיקרופון — לחיצה נוספת קוטעת">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="11" rx="3"></rect>
+        <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
+        <line x1="12" y1="18" x2="12" y2="22"></line>
+      </svg>
+    </button>
+    <div id="bars"></div>
+    <input id="ask" autocomplete="off" placeholder="שאל אותי משהו">
+    <div class="badge" id="spend">—</div>
+  </div>
+
+  <div id="actions">
+    <button class="btn" id="brief">תדריך</button>
+    <button class="btn" id="plan">תוכנית</button>
+    <button class="btn" id="mem">זיכרון</button>
+    <button class="btn" id="mute">קול</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script type="module" src="/ui/app.js"></script>
+</body>
+</html>
