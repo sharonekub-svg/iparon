@@ -11,6 +11,11 @@ import type { Flashcard } from '@/lib/study';
  * כרטיסייה אחת במסך. הקשה חושפת את התשובה, ואז התלמיד מדרג.
  * הדירוג נשמר ומזין את חישוב השליטה. בלי חזרות מרווחות — הספק
  * מבקש במפורש לא לבנות אלגוריתם מסובך ב-V1.
+ *
+ * **הסיבוב השני הוא רק מה שלא ידעת.** כרטיסייה שדורגה "ידעתי" יורדת
+ * מהחפיסה ולא חוזרת, ומה שנשאר ("לא ידעתי" ו"כמעט") רץ שוב — סיבוב
+ * אחרי סיבוב, עד שלא נשאר כלום. זו החזרה עצמה, לא אלגוריתם: החפיסה
+ * מתקצרת עד שהיא נגמרת.
  */
 
 const RATINGS = [
@@ -18,6 +23,9 @@ const RATINGS = [
   { value: 1, label: 'כמעט' },
   { value: 2, label: 'ידעתי' },
 ] as const;
+
+/** ידעתי = יורדת מהחפיסה. כל דירוג אחר חוזר בסיבוב הבא. */
+const KNOWN = 2;
 
 export function FlashcardDeck({
   cards,
@@ -27,6 +35,9 @@ export function FlashcardDeck({
   /** בדמו הציבורי אין משתמש מחובר, ולכן אין מה לשמור. */
   persistRatings?: boolean;
 }) {
+  /** החפיסה של הסיבוב הנוכחי — בסיבוב הראשון הכול, אחר כך רק מה שלא ידע */
+  const [deck, setDeck] = useState<Flashcard[]>(cards);
+  const [round, setRound] = useState(1);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -34,8 +45,8 @@ export function FlashcardDeck({
   /** הדירוגים בסבב הנוכחי, לסיכום בסוף */
   const [given, setGiven] = useState<Record<string, number>>({});
 
-  const card = cards[index];
-  const done = index >= cards.length;
+  const card = deck[index];
+  const done = index >= deck.length;
 
   async function rate(value: number) {
     setSaving(true);
@@ -64,7 +75,10 @@ export function FlashcardDeck({
     setError(null);
   }
 
-  function restart() {
+  /** סיבוב חדש על חפיסה נתונה. `next` ריק לעולם לא מגיע לכאן. */
+  function play(next: Flashcard[], nextRound: number) {
+    setDeck(next);
+    setRound(nextRound);
     setIndex(0);
     setRevealed(false);
     setGiven({});
@@ -74,11 +88,14 @@ export function FlashcardDeck({
   if (done) {
     const counts = { 0: 0, 1: 0, 2: 0 } as Record<number, number>;
     for (const value of Object.values(given)) counts[value] += 1;
-    const shaky = counts[0] + counts[1];
+    // מה שלא ידע בסיבוב הזה — בסדר שבו הופיע, כדי שהחזרה לא תרגיש אקראית
+    const again = deck.filter((c) => (given[c.id] ?? 0) < KNOWN);
 
     return (
       <div className="rise bg-ink shadow-lift rounded-2xl px-5 py-12 text-center">
-        <p className="text-heading text-on-ink">סיימת את הסיבוב</p>
+        <p className="text-heading text-on-ink">
+          {again.length === 0 ? 'ידעת הכול' : 'סיימת את הסיבוב'}
+        </p>
 
         <div className="mt-8 flex justify-center gap-8">
           {RATINGS.map((rating) => (
@@ -90,18 +107,34 @@ export function FlashcardDeck({
         </div>
 
         <p className="text-small text-on-ink/70 mx-auto mt-8 max-w-xs text-balance">
-          {shaky === 0
-            ? 'ידעת הכול. אפשר לעבור לתרגול.'
-            : `${shaky === 1 ? 'כרטיסייה אחת' : `${shaky} כרטיסיות`} עוד לא יושבות. עוד סיבוב יעזור.`}
+          {again.length === 0
+            ? 'החפיסה נגמרה — כל כרטיסייה סומנה "ידעתי". אפשר לעבור לתרגול.'
+            : `${again.length === 1 ? 'כרטיסייה אחת' : `${again.length} כרטיסיות`} עוד לא יושבות. הסיבוב הבא הוא רק הן — מה שידעת לא יחזור.`}
         </p>
 
-        <button
-          type="button"
-          onClick={restart}
-          className="bg-on-ink text-label text-ink tap mt-7 rounded-lg px-6 py-3.5 hover:opacity-90"
-        >
-          עוד סיבוב
-        </button>
+        <div className="mt-7 flex flex-col items-center gap-3">
+          {again.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => play(again, round + 1)}
+              className="bg-on-ink text-label text-ink tap rounded-lg px-6 py-3.5 hover:opacity-90"
+            >
+              חזרה על מה שלא ידעת (<span className="num">{again.length}</span>)
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => play(cards, 1)}
+            className={
+              again.length > 0
+                ? 'text-meta text-on-ink/60 hover:text-on-ink tap min-h-11 rounded-lg px-4 underline underline-offset-4'
+                : 'bg-on-ink text-label text-ink tap rounded-lg px-6 py-3.5 hover:opacity-90'
+            }
+          >
+            הכול מהתחלה (<span className="num">{cards.length}</span>)
+          </button>
+        </div>
       </div>
     );
   }
@@ -109,14 +142,23 @@ export function FlashcardDeck({
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <p className="num text-meta text-ink-faint font-mono">
-          {index + 1} / {cards.length}
+        <p className="text-meta text-ink-faint truncate">
+          <span className="num font-mono">
+            {index + 1} / {deck.length}
+          </span>
+          {round > 1 ? (
+            <>
+              {' · סיבוב '}
+              <span className="num">{round}</span>
+              {', מה שלא ידעת'}
+            </>
+          ) : null}
         </p>
         <button
           type="button"
           onClick={back}
           disabled={index === 0}
-          className="text-meta text-ink-faint hover:text-ink tap -me-3 inline-flex min-h-11 items-center gap-1 rounded-lg px-3 disabled:opacity-0"
+          className="text-meta text-ink-faint hover:text-ink tap -me-3 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-3 disabled:opacity-0"
         >
           <IconArrow direction="back" className="size-3.5" />
           הקודמת
@@ -124,7 +166,7 @@ export function FlashcardDeck({
       </div>
 
       <div className="mt-2">
-        <ProgressBar value={index} max={cards.length} />
+        <ProgressBar value={index} max={deck.length} />
       </div>
 
       {/*

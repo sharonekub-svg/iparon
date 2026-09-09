@@ -6,9 +6,11 @@ import { IconMark } from '@/components/ui/IconMark';
  * בחירת ההיקף — לתרגול ולמבחן כאחד.
  *
  * הבחירה היא **מרובה** ולא אחת מיני רבות: מבחן אמיתי הוא לרוב צירוף
- * של נושאים ("תורשה ומערכת העיכול") ולא נושא בודד ולא הכול. "כל החומר"
- * אינו פריט ברשימה אלא מתג שמסמן את כולם, ולכן אפשר גם להתחיל מהכול
- * ולהוריד נושא אחד.
+ * של נושאים ("תורשה ומערכת העיכול") ולא נושא בודד ולא הכול.
+ *
+ * אבל הקשה על נושא כשכל החומר מסומן **בוחרת אותו**, ולא מורידה אותו
+ * מהכול. מצב הפתיחה הוא "כל החומר", וכשתלמיד נוגע בנושא הוא מתכוון
+ * "רק זה" — לא "כל השאר". משם הבחירה מצטברת: נושא נוסף נוסף לצירוף.
  */
 
 export type ScopeItem = { id: string; name: string; available: number };
@@ -33,6 +35,11 @@ export function ScopePicker({
     .reduce((sum, item) => sum + item.available, 0);
 
   function toggle(id: string) {
+    // מ"כל החומר" לנושא בודד: ההקשה בוחרת אותו, לא מחסירה אותו מהכול
+    if (all && items.length > 1) {
+      onChange([id]);
+      return;
+    }
     // לא מאפשרים לרוקן את הבחירה — מבחן בלי נושא אינו מבחן
     if (chosen.has(id)) {
       if (selected.length === 1) return;
@@ -53,7 +60,7 @@ export function ScopePicker({
 
       <button
         type="button"
-        onClick={() => onChange(all ? [items[0].id] : items.map((i) => i.id))}
+        onClick={() => onChange(items.map((i) => i.id))}
         aria-pressed={all}
         className={`text-label tap mt-3 flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-start ${
           all
