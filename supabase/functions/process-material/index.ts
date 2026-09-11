@@ -201,7 +201,7 @@ async function process(
         .update({ chunk_index: chunkIndex + 1, claimed_at: null })
         .eq('id', studySetId);
 
-      await continueNextChunk(studySetId);
+      continueNextChunk(studySetId);
       return;
     }
 
@@ -236,20 +236,22 @@ async function process(
 /**
  * מעיר את הפונקציה למנה הבאה. הקריאה היא שרת-לשרת עם service role,
  * ולכן היא לא תלויה ב-session של התלמיד — שאולי כבר סגר את הדפדפן.
+ *
+ * **בלי await בכוונה.** ההפעלה הבאה רצה ב-isolate נפרד עם תקציב זמן
+ * משלה; המתנה כאן רק מחזיקה את ה-isolate הנוכחי בחיים עד שהיא תיגמר,
+ * ושורפת ממנו זמן שכבר אין לו.
  */
-async function continueNextChunk(studySetId: string): Promise<void> {
-  const response = await fetch(`${env.supabaseUrl}/functions/v1/process-material`, {
+function continueNextChunk(studySetId: string): void {
+  fetch(`${env.supabaseUrl}/functions/v1/process-material`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${env.serviceRoleKey}`,
     },
     body: JSON.stringify({ studySetId }),
+  }).catch((error) => {
+    console.error('[process-material] המשך מנה נכשל', studySetId, error);
   });
-
-  if (!response.ok) {
-    console.error('[process-material] המשך מנה נכשל', studySetId, response.status);
-  }
 }
 
 /** btoa על מחרוזת ארוכה נופל; מקודדים במנות. */
