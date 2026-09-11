@@ -4,6 +4,11 @@
  * נאכף פעמיים: הסכימה כאן מוזנת ל-output_config.format ומכריחה את
  * המבנה בזמן הדגימה, ו-parseStudySet בודקת את התוכן עצמו לפני שמירה.
  * מערך ריק, מחרוזת ריקה או correct מחוץ לטווח לא מגיעים לתלמיד.
+ *
+ * ⚠️ **בלי minItems/maxItems.** structured outputs לא תומך בהם, וה-API
+ * מחזיר 400 על `For 'array' type, property 'maxItems' is not supported`.
+ * הכמויות נאמרות למודל בפרומפט (`budgets()` ב-model.ts), והתקרה נאכפת
+ * בקוד ב-`trimToBudgets` — כלומר בגבול אחד פחות, אבל לא בלי גבול.
  */
 
 export const studySetSchema = {
@@ -25,15 +30,11 @@ export const studySetSchema = {
     title: { type: 'string', description: 'כותרת קצרה לחומר, בעברית' },
     topics: {
       type: 'array',
-      minItems: 1,
-      maxItems: 8,
       items: { type: 'string' },
       description: 'הנושאים שזוהו בחומר',
     },
     summary_sections: {
       type: 'array',
-      minItems: 1,
-      maxItems: 12,
       description: 'הסיכום, מחולק לפרקים לפי הנושאים בחומר ובסדר שבו הם מופיעים',
       items: {
         type: 'object',
@@ -48,10 +49,9 @@ export const studySetSchema = {
         },
       },
     },
-    key_points: { type: 'array', minItems: 3, maxItems: 14, items: { type: 'string' } },
+    key_points: { type: 'array', items: { type: 'string' } },
     definitions: {
       type: 'array',
-      maxItems: 30,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -61,11 +61,6 @@ export const studySetSchema = {
     },
     flashcards: {
       type: 'array',
-      // הרצפה נמוכה בכוונה: דף מחברת בודד לא צריך 8 כרטיסיות, וכפייה
-      // של מינימום גבוה על חומר דל מייצרת מילוי — וגם עולה לנו כסף,
-      // כי הפלט הוא רוב עלות הקריאה.
-      minItems: 3,
-      maxItems: 40,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -79,14 +74,10 @@ export const studySetSchema = {
     },
     quiz_questions: {
       type: 'array',
-      minItems: 3,
-      maxItems: 25,
       items: questionSchema(),
     },
     exam_questions: {
       type: 'array',
-      minItems: 4,
-      maxItems: 60,
       items: questionSchema(),
     },
   },
@@ -99,7 +90,7 @@ function questionSchema() {
     required: ['q', 'options', 'correct', 'explanation', 'topic'],
     properties: {
       q: { type: 'string' },
-      options: { type: 'array', minItems: 4, maxItems: 4, items: { type: 'string' } },
+      options: { type: 'array', items: { type: 'string' } },
       correct: { type: 'integer', minimum: 0, maximum: 3 },
       explanation: { type: 'string' },
       topic: { type: 'string' },

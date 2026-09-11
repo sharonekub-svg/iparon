@@ -175,6 +175,28 @@ function estimateCost(model: string, usage: Omit<ModelUsage, 'costUsd'>): number
   );
 }
 
+/**
+ * התקרה שהסכימה לא יכולה לאכוף.
+ *
+ * structured outputs לא תומך ב-maxItems, ולכן מודל שיחליט להחזיר 200
+ * כרטיסיות על דף אחד יעשה את זה. החיתוך כאן הוא הגבול האמיתי — גם
+ * מול עלות וגם מול תלמיד שמקבל 200 כרטיסיות ומוותר.
+ */
+function trimToBudgets(set: StudySet, pages: number): StudySet {
+  const budget = budgets(pages);
+
+  return {
+    ...set,
+    topics: set.topics.slice(0, 8),
+    summary_sections: set.summary_sections.slice(0, 12),
+    key_points: set.key_points.slice(0, 14),
+    definitions: set.definitions.slice(0, 30),
+    flashcards: set.flashcards.slice(0, budget.flashcards),
+    quiz_questions: set.quiz_questions.slice(0, budget.quiz),
+    exam_questions: set.exam_questions.slice(0, budget.exam),
+  };
+}
+
 export type FilePart = { mediaType: SupportedMediaType; base64: string };
 
 function block(part: FilePart) {
@@ -245,7 +267,7 @@ export async function analyze(
   };
 
   return {
-    studySet: parseStudySet(JSON.parse(text)),
+    studySet: trimToBudgets(parseStudySet(JSON.parse(text)), pages),
     usage: { ...raw, costUsd: estimateCost(model, raw) },
   };
 }
