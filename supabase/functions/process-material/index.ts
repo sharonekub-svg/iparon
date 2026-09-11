@@ -149,6 +149,8 @@ async function process(
     }
 
     const chunkCount = Math.max(1, Math.ceil(pages.length / limits.maxPagesPerChunk));
+    // חלוקה שווה: 26 עמודים הם שתי מנות של 13, ולא מנה של 25 ומנה של 1.
+    const perChunk = Math.ceil(pages.length / chunkCount);
 
     if (chunkIndex === 0) {
       // הגבייה היא על מספר העמודים האמיתי, אחרי הספירה ולפני הקריאה
@@ -172,8 +174,8 @@ async function process(
         .eq('id', studySetId);
     }
 
-    const from = chunkIndex * limits.maxPagesPerChunk;
-    const chunk = pages.slice(from, from + limits.maxPagesPerChunk);
+    const from = chunkIndex * perChunk;
+    const chunk = pages.slice(from, from + perChunk);
     if (chunk.length === 0) throw new Error(`מנה ריקה: ${chunkIndex}/${chunkCount}`);
 
     const parts = await partsForChunk(chunk);
