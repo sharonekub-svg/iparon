@@ -5,6 +5,10 @@ alter table public.redeem_codes
   add column pack    text references public.credit_packs (slug);
 
 -- ── מימוש קוד ──────────────────────────────────────────────────────────
+-- drop ולא רק replace: הפונקציה מחזירה עכשיו credits במקום valid_until,
+-- ו-create or replace מסרב לשנות את טיפוס ההחזרה של פונקציה קיימת.
+
+drop function if exists public.redeem_code(text);
 
 create or replace function public.redeem_code(p_code text)
 returns table (ok boolean, message text, credits integer)
