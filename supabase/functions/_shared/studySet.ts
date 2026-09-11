@@ -61,7 +61,10 @@ export const studySetSchema = {
     },
     flashcards: {
       type: 'array',
-      minItems: 8,
+      // הרצפה נמוכה בכוונה: דף מחברת בודד לא צריך 8 כרטיסיות, וכפייה
+      // של מינימום גבוה על חומר דל מייצרת מילוי — וגם עולה לנו כסף,
+      // כי הפלט הוא רוב עלות הקריאה.
+      minItems: 3,
       maxItems: 40,
       items: {
         type: 'object',
@@ -76,13 +79,13 @@ export const studySetSchema = {
     },
     quiz_questions: {
       type: 'array',
-      minItems: 8,
+      minItems: 3,
       maxItems: 25,
       items: questionSchema(),
     },
     exam_questions: {
       type: 'array',
-      minItems: 15,
+      minItems: 4,
       maxItems: 60,
       items: questionSchema(),
     },

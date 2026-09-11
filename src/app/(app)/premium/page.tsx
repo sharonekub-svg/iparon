@@ -77,7 +77,7 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
 
       <p className="text-meta text-ink-faint mt-4">
         העמודים לא פגים ולא מתאפסים בסוף החודש. אין מנוי ואין חיוב חוזר — משלמים פעם אחת,
-        וזהו.
+        וזהו. חומר קצר מחויב במינימום של <span className="num">5</span> עמודים.
       </p>
 
       {canPay ? null : (

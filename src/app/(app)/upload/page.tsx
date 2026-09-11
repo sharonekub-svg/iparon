@@ -43,6 +43,9 @@ export default async function UploadPage() {
         סיכום, דף מחברת מצולם, או PDF של פרק שלם. גם כתב יד.
       </p>
       <p className="text-meta text-ink-faint mt-2">
+        חומר קצר מחויב במינימום של <span className="num">5</span> עמודים.
+      </p>
+      <p className="text-meta text-ink-faint mt-2">
         {entitlements.freeUsed ? (
           <>
             נשארו לך <span className="num">{entitlements.credits}</span> עמודים.

@@ -161,9 +161,11 @@ async function process(
       });
 
       if (chargeError) {
+        // חיוב מינימלי של 5 עמודים — מתועד ב-docs/PLAN.md סעיף 7א.
+        const charged = Math.max(pages.length, 5);
         throw new UserError(
           chargeError.message.includes('מספיק')
-            ? `לחומר הזה צריך ${pages.length} עמודים, ואין לך מספיק ביתרה.`
+            ? `לחומר הזה צריך ${charged} עמודים, ואין לך מספיק ביתרה.`
             : 'לא הצלחנו לחייב את היתרה. נסה שוב.',
         );
       }
@@ -181,7 +183,7 @@ async function process(
     const parts = await partsForChunk(chunk);
 
     await setStage(c, studySetId, 'analyzing');
-    const { studySet, usage } = await analyze(parts);
+    const { studySet, usage } = await analyze(parts, chunk.length);
 
     await recordCall(c, { userId, studySetId, model: env.model, usage, ok: true });
 

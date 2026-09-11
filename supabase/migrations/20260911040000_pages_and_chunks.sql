@@ -90,6 +90,7 @@ as $$
 declare
   v_set     public.study_sets;
   v_balance integer;
+  v_pages   integer;
 begin
   select * into v_set from public.study_sets where id = p_study_set_id;
 
@@ -108,20 +109,25 @@ begin
     return 0;
   end if;
 
+  -- חיוב מינימלי. הפלט של המודל עולה כמעט אותו דבר בכל קריאה, ולכן
+  -- צילום של עמוד בודד עולה לנו יותר ממה שהוא מחויב. נקודת האיזון
+  -- היא סביב 4 עמודים.
+  v_pages := greatest(p_pages, 5);
+
   update public.profiles
-     set page_credits = page_credits - p_pages
+     set page_credits = page_credits - v_pages
    where id = v_set.user_id
-     and page_credits >= p_pages
+     and page_credits >= v_pages
   returning page_credits into v_balance;
 
   if v_balance is null then
     raise exception 'אין לך מספיק עמודים ביתרה' using errcode = '42501';
   end if;
 
-  update public.study_sets set pages_charged = p_pages where id = p_study_set_id;
+  update public.study_sets set pages_charged = v_pages where id = p_study_set_id;
 
   insert into public.credit_events (user_id, delta, reason, study_set_id)
-  values (v_set.user_id, -p_pages, 'pages', p_study_set_id);
+  values (v_set.user_id, -v_pages, 'pages', p_study_set_id);
 
   return v_balance;
 end;
