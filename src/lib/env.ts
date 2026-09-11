@@ -47,3 +47,16 @@ export function siteUrl(): string {
 export function demoLoginEnabled(): boolean {
   return process.env.NEXT_PUBLIC_DEMO_LOGIN !== '0';
 }
+
+/**
+ * כתובת ליצירת קשר לרכישה. כל ערוץ מתאים — `https://wa.me/9725...`,
+ * `mailto:...`, קישור לאינסטגרם.
+ *
+ * כל עוד הסליקה לא פתוחה, זה מסלול הרכישה היחיד: התלמיד כותב, מעביר
+ * תשלום, ומקבל קוד הפעלה. בלי הערך הזה לא מוצג כפתור יצירת קשר —
+ * עדיף בלי כפתור מאשר כפתור שלא מוביל לאף אחד.
+ */
+export function contactUrl(): string | null {
+  const value = process.env.NEXT_PUBLIC_CONTACT_URL?.trim();
+  return value ? value : null;
+}

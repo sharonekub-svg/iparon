@@ -1,8 +1,10 @@
 import Link from 'next/link';
 
 import { CheckoutForm } from './CheckoutForm';
+import { RedeemForm } from './RedeemForm';
 
 import { FormMessage } from '@/components/ui/FormMessage';
+import { contactUrl } from '@/lib/env';
 import { payplusConfigured } from '@/lib/payments/payplus';
 import { getEntitlements } from '@/lib/plans';
 import { priceDigits } from '@/lib/pricing';
@@ -24,6 +26,7 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
   ]);
 
   const status = typeof params.status === 'string' ? params.status : null;
+  const contact = contactUrl();
 
   if (entitlements.tier === 'premium') {
     return (
@@ -39,6 +42,9 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
           ) : null}
           .
         </p>
+        {/* גם מנוי פעיל יכול להאריך בקוד. ההארכה מתווספת לתוקף הקיים. */}
+        <RedeemForm />
+
         <Link
           href="/dashboard"
           className="border-line-input text-label text-ink hover:bg-surface-sunk mt-6 inline-block rounded-md border px-5 py-3"
@@ -95,16 +101,28 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
         <CheckoutForm />
       ) : (
         /*
-          אין מפתחות סליקה — ולכן אין כפתור תשלום. כפתור שנראה כמו תשלום
+          אין מפתחות סליקה, ולכן אין כפתור תשלום — כפתור שנראה כמו תשלום
           ולא גובה הוא הטעיה, וזו בדיוק התלונה החוזרת על Turbo.
+          במקומו: רכישה בשיחה, ואחריה קוד הפעלה.
         */
         <div className="bg-surface-sunk mt-6 rounded-lg px-5 py-5">
           <p className="text-small text-ink-body">
-            התשלום עדיין לא פתוח. אם אתה רוצה גישה מוקדמת, כתוב לנו ונפתח לך את המסלול
-            ידנית.
+            התשלום באתר עוד לא פתוח, ובינתיים הרכישה נעשית בשיחה: כותבים לי, מעבירים
+            תשלום, ומקבלים קוד שפותח את המסלול.
           </p>
+
+          {contact ? (
+            <a
+              href={contact}
+              className="bg-ink text-on-ink text-label tap mt-4 inline-block rounded-lg px-6 py-3.5 hover:opacity-90"
+            >
+              לכתוב לי על שדרוג
+            </a>
+          ) : null}
         </div>
       )}
+
+      <RedeemForm />
 
       <Link
         href="/dashboard"
