@@ -4,17 +4,15 @@ import { createServerSupabase } from '@/lib/supabase/server';
  * מה מותר למשתמש המחובר.
  *
  * הקריאה כאן היא לתצוגה בלבד — כדי לדעת מה להציג ומה לנעול. האכיפה
- * עצמה במסד: טריגר על study_sets חוסם העלאה מעל המכסה, ו-start_exam
- * דוחה מבחן למי שאינו במסלול המורחב. גם מי שיעקוף את הממשק לגמרי
- * ייחסם שם.
+ * עצמה במסד: טריגר על study_sets בודק וגורע יחידה באותה טרנזקציה של
+ * היצירה. גם מי שיעקוף את הממשק לגמרי ייחסם שם.
  */
 export type Entitlements = {
-  tier: 'free' | 'premium';
-  examsEnabled: boolean;
+  /** יחידות העלאה שנשארו */
+  credits: number;
   setsUsed: number;
-  setsLimit: number | null;
-  uploadsThisMonth: number;
-  uploadsLimit: number | null;
+  /** האם ההעלאה החינמית כבר נוצלה */
+  freeUsed: boolean;
 };
 
 export async function getEntitlements(): Promise<Entitlements> {
@@ -23,33 +21,16 @@ export async function getEntitlements(): Promise<Entitlements> {
 
   if (error || !data) {
     console.error('[plans:entitlements]', error?.message);
-    // ברירת מחדל מחמירה: בספק, מתייחסים אליו כחינמי ולא כמשודרג.
-    return {
-      tier: 'free',
-      examsEnabled: false,
-      setsUsed: 0,
-      setsLimit: 1,
-      uploadsThisMonth: 0,
-      uploadsLimit: 1,
-    };
+    // ברירת מחדל מחמירה: בספק, בלי יחידות.
+    return { credits: 0, setsUsed: 0, freeUsed: true };
   }
 
-  const row = data as {
-    tier: 'free' | 'premium';
-    exams_enabled: boolean;
-    sets_used: number;
-    sets_limit: number | null;
-    uploads_this_month: number;
-    uploads_limit: number | null;
-  };
+  const row = data as { credits: number; sets_used: number; free_used: boolean };
 
   return {
-    tier: row.tier,
-    examsEnabled: row.exams_enabled,
+    credits: row.credits,
     setsUsed: row.sets_used,
-    setsLimit: row.sets_limit,
-    uploadsThisMonth: row.uploads_this_month,
-    uploadsLimit: row.uploads_limit,
+    freeUsed: row.free_used,
   };
 }
 
@@ -62,7 +43,7 @@ export async function getUploadAllowance(): Promise<{
 
   if (error || !data) {
     console.error('[plans:allowance]', error?.message);
-    return { allowed: false, reason: 'לא הצלחנו לבדוק את המכסה. נסה שוב.' };
+    return { allowed: false, reason: 'לא הצלחנו לבדוק את היתרה. נסה שוב.' };
   }
 
   const row = data as { allowed: boolean; reason: string | null };

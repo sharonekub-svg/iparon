@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { createCheckoutUrl, payplusConfigured } from '@/lib/payments/payplus';
 import { siteUrl } from '@/lib/env';
+import { packBySlug } from '@/lib/pricing';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { looksLikeRedeemCode, normalizeRedeemCode } from '@/lib/validation/redeem';
 
@@ -14,10 +15,17 @@ import { looksLikeRedeemCode, normalizeRedeemCode } from '@/lib/validation/redee
  * הסכום לא מגיע מהלקוח אלא מ-src/lib/pricing.ts. טופס שמעביר מחיר
  * מהדפדפן הוא טופס שאפשר לשלם בו שקל.
  */
-export async function startCheckout(): Promise<{ error: string } | never> {
+export async function startCheckout(
+  formData: FormData,
+): Promise<{ error: string } | never> {
   if (!payplusConfigured()) {
     return { error: 'התשלום עדיין לא פתוח.' };
   }
+
+  // החבילה מגיעה מהטופס, אבל המחיר לא: הוא נקרא מהרשימה שלנו לפי
+  // המזהה, ונבדק שוב מול טבלת החבילות במסד לפני הזיכוי.
+  const pack = packBySlug(String(formData.get('pack') ?? ''));
+  if (!pack) return { error: 'החבילה לא נמצאה. רענן את הדף ונסה שוב.' };
 
   const supabase = await createServerSupabase();
   const {
@@ -32,6 +40,7 @@ export async function startCheckout(): Promise<{ error: string } | never> {
     userId: user.id,
     email: user.email,
     siteUrl: siteUrl(),
+    pack,
   });
 
   if (!result.ok) {
@@ -71,6 +80,8 @@ export async function redeemCode(
   const row = data as { ok: boolean; message: string };
 
   if (!row.ok) return { error: row.message };
+
+  // היתרה השתנתה, והמסכים מציגים אותה.
 
   // המסלול השתנה, והדפים מציגים מכסה. בלי זה המשתמש היה רואה מסך ישן.
   revalidatePath('/premium');

@@ -2,7 +2,7 @@ import 'server-only';
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-import { pricing } from '@/lib/pricing';
+import type { Pack } from '@/lib/pricing';
 
 /**
  * מתאם ל-PayPlus.
@@ -54,6 +54,7 @@ export type CheckoutRequest = {
   userId: string;
   email: string;
   siteUrl: string;
+  pack: Pack;
 };
 
 /**
@@ -71,22 +72,23 @@ export async function createCheckoutUrl(
   const body = {
     payment_page_uid: config.paymentPageUid,
     charge_method: 1,
-    amount: pricing.amountAgorot / 100,
-    currency_code: pricing.currency,
+    amount: req.pack.priceAgorot / 100,
+    currency_code: 'ILS',
     sendEmailApproval: true,
     sendEmailFailure: false,
     refURL_success: `${req.siteUrl}/premium?status=success`,
     refURL_failure: `${req.siteUrl}/premium?status=failure`,
     refURL_callback: `${req.siteUrl}/api/payments/payplus/callback`,
     customer: { email: req.email },
-    // חוזר אלינו ב-callback ומאפשר לדעת את מי לשדרג. לא סוד ולא מספיק
-    // כשלעצמו: השדרוג קורה רק אחרי אימות החתימה של הספק.
-    more_info: req.userId,
+    // חוזר אלינו ב-callback ומאפשר לדעת את מי לזכות ובכמה. לא סוד ולא
+    // מספיק כשלעצמו: הזיכוי קורה רק אחרי אימות החתימה של הספק, והכמות
+    // נקראת מטבלת החבילות ולא מכאן.
+    more_info: `${req.userId}|${req.pack.slug}`,
     items: [
       {
-        name: 'מסלול מורחב — חודש',
+        name: `חבילה: ${req.pack.title} — ${req.pack.uploads} העלאות`,
         quantity: 1,
-        price: pricing.amountAgorot / 100,
+        price: req.pack.priceAgorot / 100,
       },
     ],
   };
@@ -155,6 +157,7 @@ export function verifyCallbackSignature(
 export type CallbackPayload = {
   transactionUid: string | null;
   userId: string | null;
+  packSlug: string | null;
   approved: boolean;
   amountAgorot: number;
 };
@@ -168,6 +171,16 @@ export function parseCallback(raw: unknown): CallbackPayload {
   const status = String(data.status ?? body.status ?? '').toLowerCase();
   const amount = Number(data.amount ?? body.amount ?? 0);
 
+  const moreInfo =
+    typeof data.more_info === 'string'
+      ? data.more_info
+      : typeof body.more_info === 'string'
+        ? body.more_info
+        : '';
+
+  // "<userId>|<pack>" — נשלח על ידינו ביצירת דף התשלום.
+  const [userId, packSlug] = moreInfo.split('|');
+
   return {
     transactionUid:
       typeof data.uid === 'string'
@@ -175,12 +188,8 @@ export function parseCallback(raw: unknown): CallbackPayload {
         : typeof body.transaction_uid === 'string'
           ? body.transaction_uid
           : null,
-    userId:
-      typeof data.more_info === 'string'
-        ? data.more_info
-        : typeof body.more_info === 'string'
-          ? body.more_info
-          : null,
+    userId: userId || null,
+    packSlug: packSlug || null,
     // PayPlus מסמנת עסקה מאושרת ב-status_code '000'.
     approved: statusCode === '000' || status === 'approved',
     amountAgorot: Number.isFinite(amount) ? Math.round(amount * 100) : 0,

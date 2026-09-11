@@ -7,17 +7,9 @@ import { FormMessage } from '@/components/ui/FormMessage';
 import { contactUrl } from '@/lib/env';
 import { payplusConfigured } from '@/lib/payments/payplus';
 import { getEntitlements } from '@/lib/plans';
-import { priceDigits } from '@/lib/pricing';
+import { packs, perUploadDigits, priceDigits } from '@/lib/pricing';
 
-export const metadata = { title: 'המסלול המורחב' };
-
-const included = [
-  'העלאה של עד 10 חומרים בחודש',
-  'סיכום מלא, כרטיסיות ותרגול לכל חומר',
-  'תרגול על נושא אחד, על צירוף נושאים, או על הכול',
-  'מבחן מלא על החומר, עם ציון ומעקב',
-  'מעקב אחרי הנושאים החזקים והחלשים שלך',
-];
+export const metadata = { title: 'יחידות העלאה' };
 
 export default async function PremiumPage(props: PageProps<'/premium'>) {
   const [entitlements, params] = await Promise.all([
@@ -27,49 +19,30 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
 
   const status = typeof params.status === 'string' ? params.status : null;
   const contact = contactUrl();
-
-  if (entitlements.tier === 'premium') {
-    return (
-      <>
-        <h1 className="text-heading text-ink">אתה במסלול המורחב</h1>
-        <p className="text-small text-ink-body mt-2">
-          העלית <span className="num">{entitlements.uploadsThisMonth}</span> חומרים החודש
-          {entitlements.uploadsLimit ? (
-            <>
-              {' '}
-              מתוך <span className="num">{entitlements.uploadsLimit}</span>
-            </>
-          ) : null}
-          .
-        </p>
-        {/* גם מנוי פעיל יכול להאריך בקוד. ההארכה מתווספת לתוקף הקיים. */}
-        <RedeemForm />
-
-        <Link
-          href="/dashboard"
-          className="border-line-input text-label text-ink hover:bg-surface-sunk mt-6 inline-block rounded-md border px-5 py-3"
-        >
-          לחומרים שלי
-        </Link>
-      </>
-    );
-  }
+  const canPay = payplusConfigured();
 
   return (
     <>
-      <h1 className="text-heading text-ink">המסלול המורחב</h1>
+      <h1 className="text-heading text-ink">יחידות העלאה</h1>
       <p className="text-small text-ink-body mt-2">
-        החומר הראשון חינם, כדי שתראה מה יוצא לך. מכאן זה מסלול בתשלום.
+        {entitlements.freeUsed ? (
+          <>
+            נשארו לך <span className="num">{entitlements.credits}</span> יחידות. כל העלאה
+            של חומר שווה יחידה אחת, ומה שנוצר ממנה — סיכום, כרטיסיות, תרגול ומבחן — נשאר
+            שלך בלי הגבלה.
+          </>
+        ) : (
+          'ההעלאה הראשונה שלך חינם. אחריה כל העלאה שווה יחידה, ומה שנוצר ממנה נשאר שלך בלי הגבלה.'
+        )}
       </p>
 
       {/*
-        המשתמש חוזר לכאן מדף התשלום. השדרוג עצמו לא נסמך על החזרה הזאת
-        אלא על ה-callback החתום מהספק, ולכן הניסוח זהיר: ייתכן שהאישור
-        עוד בדרך.
+        המשתמש חוזר לכאן מדף התשלום. הזיכוי עצמו לא נסמך על החזרה הזאת
+        אלא על ה-callback החתום מהספק, ולכן הניסוח זהיר.
       */}
       {status === 'success' ? (
         <div className="mt-6">
-          <FormMessage notice="התשלום נקלט. פתיחת המסלול לוקחת עד דקה — רענן את הדף אם עוד לא נפתח." />
+          <FormMessage notice="התשלום נקלט. היחידות נכנסות תוך כדקה — רענן את הדף אם עוד לא." />
         </div>
       ) : null}
       {status === 'failure' ? (
@@ -78,37 +51,44 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
         </div>
       ) : null}
 
-      <section className="border-line-strong mt-8 rounded-xl border px-5 py-6">
-        <div className="flex items-baseline gap-2">
-          <span className="text-display text-ink">
-            <span className="num">{priceDigits}</span> ₪
-          </span>
-          <span className="text-small text-ink-faint">לחודש</span>
-        </div>
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {packs.map((pack) => (
+          <section
+            key={pack.slug}
+            className={`rounded-xl border px-5 py-6 ${
+              pack.featured ? 'border-line-strong bg-surface shadow-card' : 'border-line'
+            }`}
+          >
+            <h2 className="text-subheading text-ink">{pack.title}</h2>
+            <p className="text-meta text-ink-faint mt-1">{pack.subtitle}</p>
 
-        <h2 className="text-subheading text-ink mt-6">מה כלול</h2>
-        <ul className="mt-4 flex flex-col gap-3">
-          {included.map((item) => (
-            <li key={item} className="text-small text-ink-body flex gap-2.5">
-              <span className="bg-correct mt-2 size-1.5 shrink-0 rounded-full" />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </section>
+            <p className="text-display text-ink mt-4">
+              <span className="num">{priceDigits(pack)}</span> ₪
+            </p>
+            <p className="text-small text-ink-body mt-1">
+              <span className="num">{pack.uploads}</span> העלאות ·{' '}
+              <span className="num">{perUploadDigits(pack)}</span> ₪ לחומר
+            </p>
 
-      {payplusConfigured() ? (
-        <CheckoutForm />
-      ) : (
+            {canPay ? <CheckoutForm pack={pack} /> : null}
+          </section>
+        ))}
+      </div>
+
+      <p className="text-meta text-ink-faint mt-4">
+        היחידות לא פגות ולא מתאפסות בסוף החודש. אין מנוי ואין חיוב חוזר — משלמים פעם אחת,
+        וזהו.
+      </p>
+
+      {canPay ? null : (
         /*
           אין מפתחות סליקה, ולכן אין כפתור תשלום — כפתור שנראה כמו תשלום
-          ולא גובה הוא הטעיה, וזו בדיוק התלונה החוזרת על Turbo.
-          במקומו: רכישה בשיחה, ואחריה קוד הפעלה.
+          ולא גובה הוא הטעיה. במקומו: רכישה בשיחה, ואחריה קוד הפעלה.
         */
         <div className="bg-surface-sunk mt-6 rounded-lg px-5 py-5">
           <p className="text-small text-ink-body">
             התשלום באתר עוד לא פתוח, ובינתיים הרכישה נעשית בשיחה: כותבים לי, מעבירים
-            תשלום, ומקבלים קוד שפותח את המסלול.
+            תשלום, ומקבלים קוד שמוסיף את היחידות.
           </p>
 
           {contact ? (
@@ -116,7 +96,7 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
               href={contact}
               className="bg-ink text-on-ink text-label tap mt-4 inline-block rounded-lg px-6 py-3.5 hover:opacity-90"
             >
-              לכתוב לי על שדרוג
+              לכתוב לי על חבילה
             </a>
           ) : null}
         </div>

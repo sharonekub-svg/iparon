@@ -30,11 +30,15 @@ export default async function DashboardPage() {
     <>
       <div className="flex items-baseline justify-between gap-4">
         <h1 className="text-display text-ink">{greeting}</h1>
-        {entitlements.tier === 'free' ? (
-          <Link href="/premium" className="text-meta text-ink-faint hover:text-ink">
-            שדרוג
-          </Link>
-        ) : null}
+        <Link href="/premium" className="text-meta text-ink-faint hover:text-ink">
+          {entitlements.freeUsed ? (
+            <>
+              <span className="num">{entitlements.credits}</span> יחידות
+            </>
+          ) : (
+            'החבילות'
+          )}
+        </Link>
       </div>
 
       {sets.length === 0 ? (

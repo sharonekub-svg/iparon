@@ -19,14 +19,12 @@ export default async function UploadPage() {
         <p className="text-small text-ink-body mt-2">{allowance.reason}</p>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          {entitlements.tier === 'free' ? (
-            <Link
-              href="/premium"
-              className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-3.5 text-center hover:opacity-90"
-            >
-              מה כלול במסלול המורחב
-            </Link>
-          ) : null}
+          <Link
+            href="/premium"
+            className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-3.5 text-center hover:opacity-90"
+          >
+            להוסיף יחידות
+          </Link>
           <Link
             href="/dashboard"
             className="border-line-input text-label text-ink hover:bg-surface-sunk tap rounded-lg border px-6 py-3.5 text-center"
@@ -38,23 +36,21 @@ export default async function UploadPage() {
     );
   }
 
-  const remaining =
-    entitlements.uploadsLimit === null
-      ? null
-      : entitlements.uploadsLimit - entitlements.uploadsThisMonth;
-
   return (
     <>
       <h1 className="text-display text-ink">העלאת חומר</h1>
       <p className="text-small text-ink-body mt-3">
         סיכום, דף מחברת מצולם, או PDF של פרק שלם. גם כתב יד.
       </p>
-      {remaining !== null ? (
-        <p className="text-meta text-ink-faint mt-2">
-          נשארו לך <span className="num">{remaining}</span> העלאות
-          {entitlements.tier === 'free' ? ' במסלול החינמי' : ' החודש'}.
-        </p>
-      ) : null}
+      <p className="text-meta text-ink-faint mt-2">
+        {entitlements.freeUsed ? (
+          <>
+            נשארו לך <span className="num">{entitlements.credits}</span> יחידות העלאה.
+          </>
+        ) : (
+          'ההעלאה הראשונה שלך — עלינו.'
+        )}
+      </p>
       <UploadForm />
     </>
   );

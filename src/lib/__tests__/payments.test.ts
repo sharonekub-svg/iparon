@@ -52,24 +52,35 @@ describe('callback של ספק התשלומים', () => {
     expect(verifyCallbackSignature(body, sign(body))).toBe(false);
   });
 
-  it('קורא עסקה מאושרת: מזהה, משתמש וסכום באגורות', async () => {
+  it('קורא עסקה מאושרת: מזהה, משתמש, חבילה וסכום באגורות', async () => {
     const { parseCallback } = await load();
 
     const parsed = parseCallback({
       transaction: {
         uid: 'txn-1',
         status_code: '000',
-        more_info: 'user-1',
-        amount: 39,
+        more_info: 'user-1|term',
+        amount: 69,
       },
     });
 
     expect(parsed).toEqual({
       transactionUid: 'txn-1',
       userId: 'user-1',
+      packSlug: 'term',
       approved: true,
-      amountAgorot: 3900,
+      amountAgorot: 6900,
     });
+  });
+
+  it('בלי חבילה ב-more_info אין מה לזכות', async () => {
+    const { parseCallback } = await load();
+
+    const parsed = parseCallback({
+      transaction: { uid: 'txn-3', status_code: '000', more_info: 'user-1', amount: 69 },
+    });
+
+    expect(parsed.packSlug).toBeNull();
   });
 
   it('לא מסמן כמאושרת עסקה עם קוד אחר', async () => {
@@ -88,6 +99,7 @@ describe('callback של ספק התשלומים', () => {
     expect(parseCallback({})).toEqual({
       transactionUid: null,
       userId: null,
+      packSlug: null,
       approved: false,
       amountAgorot: 0,
     });

@@ -24,3 +24,27 @@ describe('קוד הפעלה', () => {
     expect(looksLikeRedeemCode("LAMDAI'; drop table--")).toBe(false);
   });
 });
+
+describe('חבילות', () => {
+  it('מחיר ליחידה יורד ככל שהחבילה גדולה', async () => {
+    const { packs } = await import('@/lib/pricing');
+    const perUpload = packs.map((pack) => pack.priceAgorot / pack.uploads);
+
+    expect(perUpload).toEqual([...perUpload].sort((a, b) => b - a));
+  });
+
+  it('כל חבילה מכסה לפחות פי שניים את עלות המודל', async () => {
+    const { packs } = await import('@/lib/pricing');
+    // ~$0.47 להעלאה ב-Opus 5, בשער 3.7 ש"ח לדולר. ראה docs/PLAN.md סעיף 8.
+    const costAgorotPerUpload = 175;
+
+    for (const pack of packs) {
+      expect(pack.priceAgorot / pack.uploads).toBeGreaterThan(costAgorotPerUpload * 2);
+    }
+  });
+
+  it('יש בדיוק חבילה אחת מומלצת', async () => {
+    const { packs } = await import('@/lib/pricing');
+    expect(packs.filter((pack) => pack.featured)).toHaveLength(1);
+  });
+});
