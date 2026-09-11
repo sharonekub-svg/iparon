@@ -235,6 +235,24 @@ async function process(
   }
 }
 
+/**
+ * הטענות שב-JWT של הקורא. החתימה כבר נבדקה בשער של Supabase
+ * (verify_jwt), ולכן כאן רק מפענחים — אין כאן אימות שני.
+ */
+function callerClaims(request: Request): { sub?: string; role?: string } | null {
+  const header = request.headers.get('Authorization') ?? '';
+  const raw = header.startsWith('Bearer ') ? header.slice(7) : '';
+  const payload = raw.split('.')[1];
+  if (!payload) return null;
+
+  try {
+    const pad = payload.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(pad + '='.repeat((4 - (pad.length % 4)) % 4)));
+  } catch {
+    return null;
+  }
+}
+
 /** btoa על מחרוזת ארוכה נופל; מקודדים במנות. */
 function encodeBase64(bytes: Uint8Array): string {
   let binary = '';
@@ -249,7 +267,7 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return preflight();
   if (request.method !== 'POST') return fail('method_not_allowed', 'השתמש ב-POST', 405);
 
-  let body: { studySetId?: unknown };
+  let body: { studySetId?: unknown; token?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -266,11 +284,22 @@ Deno.serve(async (request) => {
   // הבעלות נקבעת מהרשומה עצמה, לא ממה שהלקוח שלח.
   const { data: set } = await c
     .from('study_sets')
-    .select('id, user_id, status')
+    .select('id, user_id, status, dispatch_token')
     .eq('id', studySetId)
     .maybeSingle();
 
   if (!set) return fail('not_found', 'החומר לא נמצא', 404);
+
+  // מי מורשה להעיר את העובד. בלי הבדיקה הזאת כל משתמש מחובר יכול
+  // להפעיל עיבוד על חומר של מישהו אחר — ולחייב אותו.
+  const caller = callerClaims(request);
+  const token = typeof body.token === 'string' ? body.token : null;
+  const allowed =
+    caller?.role === 'service_role' ||
+    caller?.sub === set.user_id ||
+    (token !== null && set.dispatch_token === token);
+
+  if (!allowed) return fail('forbidden', 'אין הרשאה לחומר הזה', 403);
 
   // עיבוד חוזר על חומר שכבר מוכן הוא באג (כלל ברזל 3), ולא בקשה לגיטימית.
   if (set.status === 'ready') {
@@ -295,6 +324,11 @@ Deno.serve(async (request) => {
   });
 
   if (!claimed) return json({ accepted: false, reason: 'כבר בעיבוד' }, 202);
+
+  // האסימון חד-פעמי: מי שתבע, ניצל אותו.
+  if (set.dispatch_token) {
+    await c.from('study_sets').update({ dispatch_token: null }).eq('id', studySetId);
+  }
 
   const work = process(c, studySetId, set.user_id as string);
   if (typeof EdgeRuntime !== 'undefined') {
