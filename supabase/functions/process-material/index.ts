@@ -24,9 +24,9 @@ import { UserError, userMessage } from '../_shared/errors.ts';
  *
  * **עיבוד במנות.** קובץ טיפוסי הוא 20–60 עמודים, והפעלה אחת ארוכה
  * עליו גם חורגת ממגבלת הזמן של הפונקציה וגם מחזירה סיכום רדוד. לכן
- * כל הפעלה מטפלת במנה אחת של עד 20 עמודים ומעירה את עצמה למנה הבאה.
- * מספר המנה נקרא מהמסד ולא מגוף הבקשה — כך אי אפשר לדלג על מנות
- * מבחוץ.
+ * כל הפעלה מטפלת במנה אחת ומשחררת את הנעילה; המתזמן במסד מעיר את
+ * ההפעלה הבאה. מספר המנה נקרא מהמסד ולא מגוף הבקשה — כך אי אפשר
+ * לדלג על מנות מבחוץ.
  *
  * מחזיר 202 מיד וממשיך ברקע; מסך העיבוד עוקב אחרי stage ו-chunk_index.
  */
@@ -196,12 +196,14 @@ async function process(
 
     if (!isLast) {
       // המנה הבאה בהפעלה נפרדת: כל הפעלה מתחילה את שעון הזמן מחדש.
+      // שחרור הנעילה הוא כל מה שצריך — המתזמן במסד (pg_cron) מזהה
+      // חומר בעיבוד בלי עובד ומעיר את הפונקציה תוך שניות. מונה
+      // הניסיונות מתאפס, כי הוא נספר לכל מנה בנפרד.
       await c
         .from('study_sets')
-        .update({ chunk_index: chunkIndex + 1, claimed_at: null })
+        .update({ chunk_index: chunkIndex + 1, claimed_at: null, dispatch_attempts: 0 })
         .eq('id', studySetId);
 
-      continueNextChunk(studySetId);
       return;
     }
 
@@ -231,27 +233,6 @@ async function process(
         : userMessage(error),
     );
   }
-}
-
-/**
- * מעיר את הפונקציה למנה הבאה. הקריאה היא שרת-לשרת עם service role,
- * ולכן היא לא תלויה ב-session של התלמיד — שאולי כבר סגר את הדפדפן.
- *
- * **בלי await בכוונה.** ההפעלה הבאה רצה ב-isolate נפרד עם תקציב זמן
- * משלה; המתנה כאן רק מחזיקה את ה-isolate הנוכחי בחיים עד שהיא תיגמר,
- * ושורפת ממנו זמן שכבר אין לו.
- */
-function continueNextChunk(studySetId: string): void {
-  fetch(`${env.supabaseUrl}/functions/v1/process-material`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${env.serviceRoleKey}`,
-    },
-    body: JSON.stringify({ studySetId }),
-  }).catch((error) => {
-    console.error('[process-material] המשך מנה נכשל', studySetId, error);
-  });
 }
 
 /** btoa על מחרוזת ארוכה נופל; מקודדים במנות. */
