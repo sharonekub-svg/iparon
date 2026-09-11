@@ -273,6 +273,12 @@ export type Progress = {
 
 export async function getProgress(studySetId: string): Promise<Progress | null> {
   const supabase = await createServerSupabase();
+
+  // העובד יכול למות באמצע: Supabase הורגת Edge Function אחרי ~150
+  // שניות. בלי הבדיקה הזאת התלמיד נשאר מול מסך "מנתח את החומר" לנצח,
+  // והעמודים שנגבו ממנו לא חוזרים. מי שממתין הוא גם מי שמגלה.
+  await supabase.rpc('fail_stuck_study_set', { p_study_set_id: studySetId });
+
   const { data } = await supabase
     .from('study_sets')
     .select('status, stage, error, chunk_index, chunk_count')

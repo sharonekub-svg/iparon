@@ -133,7 +133,7 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
         <p className="text-meta text-ink-faint mt-2">
           חומר ארוך, אז הוא מעובד בחלקים — חלק{' '}
           <span className="num">{Math.min(chunk.index + 1, chunk.count)}</span> מתוך{' '}
-          <span className="num">{chunk.count}</span>.
+          <span className="num">{chunk.count}</span>. כל חלק לוקח כדקה.
         </p>
       ) : null}
 
