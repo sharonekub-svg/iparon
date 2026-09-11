@@ -1,5 +1,7 @@
 'use server';
 
+import { PDFDocument } from 'pdf-lib';
+
 import { createServerSupabase } from '@/lib/supabase/server';
 import {
   extensionFor,
@@ -56,13 +58,13 @@ export async function prepareUpload(files: FileMeta[]): Promise<Result<PreparedU
   const staleBefore = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { data: stale } = await supabase
     .from('study_sets')
-    .select('id, documents(count)')
+    .select('id')
     .eq('status', 'queued')
     .lt('created_at', staleBefore);
 
-  const orphans = (stale ?? [])
-    .filter((row) => (row.documents?.[0]?.count ?? 0) === 0)
-    .map((row) => row.id as string);
+  // כולל חומר שנרשמו לו קבצים אבל העיבוד מעולם לא התחיל — למשל
+  // תלמיד שראה את המחיר, סגר את הדפדפן ולא אישר ולא ביטל.
+  const orphans = (stale ?? []).map((row) => row.id as string);
 
   if (orphans.length > 0) {
     await supabase.from('study_sets').delete().in('id', orphans);
@@ -108,10 +110,70 @@ export async function prepareUpload(files: FileMeta[]): Promise<Result<PreparedU
   return { ok: true, data: { studySetId: set.id as string, targets } };
 }
 
+/** חיוב מינימלי לחומר. חייב להסכים עם consume_pages במסד. */
+const MIN_CHARGED_PAGES = 5;
+
 /**
- * שלב 2: הקבצים כבר ב-Storage. רושמים אותם ומעירים את העובד.
+ * שלב 3: כמה עמודים החומר הזה יעלה, לפני שמעבדים אותו.
+ *
+ * זה קיים כדי שלא תהיה הפתעה: מצגת של 40 שקפים שבה חמש מילים בכל שקף
+ * מחויבת ב-40 עמודים, כי כל שקף נשלח למודל כתמונה בין אם יש בו טקסט
+ * ובין אם לא. עדיף שהתלמיד יראה את המספר ויחליט, מאשר שיגלה אותו
+ * אחרי שהיתרה ירדה.
+ *
+ * הספירה כאן היא בשרת ולא בדפדפן: ספירת עמודים אמיתית דורשת פענוח של
+ * עץ העמודים, וספרייה לזה בצד הלקוח היא מאות קילובייטים על רשת
+ * סלולרית — בשביל מספר אחד.
  */
-export async function startProcessing(
+export async function estimatePages(
+  studySetId: string,
+): Promise<Result<{ pages: number; charged: number }>> {
+  const supabase = await createServerSupabase();
+
+  const { data: docs, error } = await supabase
+    .from('documents')
+    .select('storage_path, mime_type')
+    .eq('study_set_id', studySetId)
+    .is('deleted_at', null);
+
+  if (error || !docs || docs.length === 0) {
+    return { ok: false, error: 'לא הצלחנו לקרוא את הקבצים. נסה שוב.' };
+  }
+
+  let pages = 0;
+
+  for (const doc of docs) {
+    if (doc.mime_type !== 'application/pdf') {
+      pages += 1; // תמונה = עמוד
+      continue;
+    }
+
+    const { data: blob, error: downloadError } = await supabase.storage
+      .from('materials')
+      .download(doc.storage_path as string);
+
+    if (downloadError || !blob) {
+      return { ok: false, error: 'לא הצלחנו לקרוא את הקובץ. נסה שוב.' };
+    }
+
+    try {
+      const pdf = await PDFDocument.load(await blob.arrayBuffer(), {
+        ignoreEncryption: true,
+      });
+      pages += pdf.getPageCount();
+    } catch {
+      return { ok: false, error: 'לא הצלחנו לקרוא את ה-PDF. ייתכן שהוא פגום.' };
+    }
+  }
+
+  return { ok: true, data: { pages, charged: Math.max(pages, MIN_CHARGED_PAGES) } };
+}
+
+/**
+ * שלב 2: הקבצים כבר ב-Storage. רושמים אותם, עוד לפני העיבוד, כדי
+ * שאפשר יהיה לספור עמודים ולהציג מחיר.
+ */
+export async function registerDocuments(
   studySetId: string,
   docs: { path: string; size: number; mimeType: string }[],
 ): Promise<Result<null>> {
@@ -134,7 +196,7 @@ export async function startProcessing(
     return { ok: false, error: 'משהו השתבש בהעלאה. נסה שוב.' };
   }
 
-  const { error: docError } = await supabase.from('documents').insert(
+  const { error } = await supabase.from('documents').insert(
     docs.map((doc) => ({
       study_set_id: studySetId,
       user_id: user.id,
@@ -144,25 +206,62 @@ export async function startProcessing(
     })),
   );
 
-  if (docError) {
-    console.error('[upload:documents]', docError.message);
+  if (error) {
+    console.error('[upload:documents]', error.message);
     return { ok: false, error: 'שמירת הקבצים נכשלה. נסה שוב.' };
   }
 
+  return { ok: true, data: null };
+}
+
+/**
+ * התלמיד ראה את המחיר ואמר לא. מוחקים את החומר.
+ *
+ * בלי זה נשארת שורה במצב queued עם קבצים, שמופיעה בדשבורד כחומר
+ * שלא נגמר. RLS מוודאת שאפשר למחוק רק חומר של המשתמש עצמו, והמחיקה
+ * גוררת איתה את הקבצים.
+ */
+export async function cancelUpload(studySetId: string): Promise<Result<null>> {
+  const supabase = await createServerSupabase();
+
+  const { error } = await supabase
+    .from('study_sets')
+    .delete()
+    .eq('id', studySetId)
+    .eq('status', 'queued');
+
+  if (error) {
+    console.error('[upload:cancel]', error.message);
+    return { ok: false, error: 'הביטול נכשל. נסה שוב.' };
+  }
+
+  return { ok: true, data: null };
+}
+
+/**
+ * שלב 4: התלמיד ראה כמה זה עולה ואישר. מעירים את העובד.
+ */
+export async function startProcessing(studySetId: string): Promise<Result<null>> {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { ok: false, error: 'לא מחובר' };
+
   // ה-session של המשתמש מועבר לפונקציה; הבעלות נבדקת שם מול הרשומה.
-  const { error: invokeError } = await supabase.functions.invoke('process-material', {
+  const { error } = await supabase.functions.invoke('process-material', {
     body: { studySetId },
   });
 
-  if (invokeError) {
-    console.error('[upload:invoke]', invokeError.message);
+  if (error) {
+    console.error('[upload:invoke]', error.message);
     return { ok: false, error: 'העיבוד לא התחיל. נסה שוב.' };
   }
 
   return { ok: true, data: null };
 }
 
-/** מסך העיבוד שואל את זה כל כמה שניות. */
 export type Progress = {
   status: string;
   stage: string;

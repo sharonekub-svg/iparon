@@ -3,13 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { prepareUpload, startProcessing } from './actions';
+import {
+  cancelUpload,
+  estimatePages,
+  prepareUpload,
+  registerDocuments,
+  startProcessing,
+} from './actions';
 
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { createBrowserSupabase } from '@/lib/supabase/browser';
 import { describeRejection, uploadLimits } from '@/lib/validation/upload';
 
-type Phase = 'idle' | 'uploading' | 'starting';
+type Phase = 'idle' | 'uploading' | 'estimating' | 'confirming' | 'starting';
+
+/** מה שמוצג לאישור לפני שהיתרה יורדת. */
+type Estimate = { studySetId: string; pages: number; charged: number };
 
 /** "0.0MB" על קובץ של 40KB נראה כמו באג. */
 function formatSize(bytes: number): string {
@@ -25,6 +34,7 @@ export function UploadForm() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [uploaded, setUploaded] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [estimate, setEstimate] = useState<Estimate | null>(null);
 
   // נגזר מהקבצים ולא מוחזק ב-state: setState בתוך effect גורר רינדור
   // מדורג, וכאן אין שום דבר שצריך להיזכר בין רינדורים.
@@ -102,16 +112,43 @@ export function UploadForm() {
       setUploaded(i + 1);
     }
 
-    setPhase('starting');
-    const started = await startProcessing(studySetId, docs);
+    const registered = await registerDocuments(studySetId, docs);
 
-    if (!started.ok) {
-      setError(started.error);
+    if (!registered.ok) {
+      setError(registered.error);
       setPhase('idle');
       return;
     }
 
-    router.push(`/sets/${studySetId}/processing`);
+    // עוצרים להצגת מחיר. מצגת של 40 שקפים דלילים מחויבת ב-40 עמודים,
+    // כי כל שקף נשלח למודל כתמונה — וזה בדיוק סוג ההפתעה שגורמת
+    // לתלמיד להרגיש מרומה.
+    setPhase('estimating');
+    const estimated = await estimatePages(studySetId);
+
+    if (!estimated.ok) {
+      setError(estimated.error);
+      setPhase('idle');
+      return;
+    }
+
+    setEstimate({ studySetId, ...estimated.data });
+    setPhase('confirming');
+  }
+
+  async function confirm() {
+    if (!estimate) return;
+
+    setPhase('starting');
+    const started = await startProcessing(estimate.studySetId);
+
+    if (!started.ok) {
+      setError(started.error);
+      setPhase('confirming');
+      return;
+    }
+
+    router.push(`/sets/${estimate.studySetId}/processing`);
   }
 
   const busy = phase !== 'idle';
@@ -255,20 +292,63 @@ export function UploadForm() {
         </div>
       ) : null}
 
-      <button
-        type="button"
-        onClick={submit}
-        disabled={busy || files.length === 0}
-        className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-4 hover:opacity-90 disabled:opacity-50"
-      >
-        {phase === 'starting'
-          ? 'מתחיל עיבוד...'
-          : phase === 'uploading'
-            ? 'מעלה...'
-            : files.length > 1
-              ? `העלה ${files.length} עמודים`
-              : 'העלה'}
-      </button>
+      {estimate ? (
+        <div className="border-line-strong bg-surface shadow-card rounded-2xl border px-5 py-6">
+          <h2 className="text-subheading text-ink">
+            החומר הזה יעלה <span className="num">{estimate.charged}</span> עמודים
+          </h2>
+
+          <p className="text-small text-ink-body mt-2">
+            {estimate.charged > estimate.pages ? (
+              <>
+                בחומר יש <span className="num">{estimate.pages}</span> עמודים, והחיוב
+                המינימלי לחומר הוא <span className="num">{estimate.charged}</span>.
+              </>
+            ) : (
+              'כל עמוד נספר, גם עמוד שיש בו מעט טקסט — המערכת קוראת כל עמוד כתמונה שלמה.'
+            )}
+          </p>
+
+          <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+            <button
+              type="button"
+              onClick={confirm}
+              disabled={phase === 'starting'}
+              className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-3.5 hover:opacity-90 disabled:opacity-50"
+            >
+              {phase === 'starting' ? 'מתחיל עיבוד...' : 'להתחיל'}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                await cancelUpload(estimate.studySetId);
+                setEstimate(null);
+                setFiles([]);
+                setPhase('idle');
+              }}
+              disabled={phase === 'starting'}
+              className="border-line-input text-label text-ink hover:bg-surface-sunk tap rounded-lg border px-6 py-3.5 disabled:opacity-50"
+            >
+              ביטול
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={submit}
+          disabled={busy || files.length === 0}
+          className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-4 hover:opacity-90 disabled:opacity-50"
+        >
+          {phase === 'estimating'
+            ? 'בודק כמה עמודים...'
+            : phase === 'uploading'
+              ? 'מעלה...'
+              : files.length > 1
+                ? `העלה ${files.length} עמודים`
+                : 'העלה'}
+        </button>
+      )}
     </div>
   );
 }
