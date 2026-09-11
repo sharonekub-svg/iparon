@@ -8,7 +8,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
  * היצירה. גם מי שיעקוף את הממשק לגמרי ייחסם שם.
  */
 export type Entitlements = {
-  /** יחידות העלאה שנשארו */
+  /** עמודים שנשארו ביתרה */
   credits: number;
   setsUsed: number;
   /** האם ההעלאה החינמית כבר נוצלה */
@@ -21,7 +21,7 @@ export async function getEntitlements(): Promise<Entitlements> {
 
   if (error || !data) {
     console.error('[plans:entitlements]', error?.message);
-    // ברירת מחדל מחמירה: בספק, בלי יחידות.
+    // ברירת מחדל מחמירה: בספק, בלי יתרה.
     return { credits: 0, setsUsed: 0, freeUsed: true };
   }
 

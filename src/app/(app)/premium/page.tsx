@@ -7,9 +7,9 @@ import { FormMessage } from '@/components/ui/FormMessage';
 import { contactUrl } from '@/lib/env';
 import { payplusConfigured } from '@/lib/payments/payplus';
 import { getEntitlements } from '@/lib/plans';
-import { packs, perUploadDigits, priceDigits } from '@/lib/pricing';
+import { packs, perPageDigits, priceDigits } from '@/lib/pricing';
 
-export const metadata = { title: 'יחידות העלאה' };
+export const metadata = { title: 'עמודים' };
 
 export default async function PremiumPage(props: PageProps<'/premium'>) {
   const [entitlements, params] = await Promise.all([
@@ -23,16 +23,16 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
 
   return (
     <>
-      <h1 className="text-heading text-ink">יחידות העלאה</h1>
+      <h1 className="text-heading text-ink">עמודים</h1>
       <p className="text-small text-ink-body mt-2">
         {entitlements.freeUsed ? (
           <>
-            נשארו לך <span className="num">{entitlements.credits}</span> יחידות. כל העלאה
-            של חומר שווה יחידה אחת, ומה שנוצר ממנה — סיכום, כרטיסיות, תרגול ומבחן — נשאר
-            שלך בלי הגבלה.
+            נשארו לך <span className="num">{entitlements.credits}</span> עמודים. כל עמוד
+            שהמערכת קוראת יורד מהיתרה, ומה שנוצר ממנו — סיכום, כרטיסיות, תרגול ומבחן —
+            נשאר שלך בלי הגבלה.
           </>
         ) : (
-          'ההעלאה הראשונה שלך חינם. אחריה כל העלאה שווה יחידה, ומה שנוצר ממנה נשאר שלך בלי הגבלה.'
+          'החומר הראשון שלך חינם, בכל גודל. אחריו קונים עמודים, ומה שנוצר מהם נשאר שלך בלי הגבלה.'
         )}
       </p>
 
@@ -42,7 +42,7 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
       */}
       {status === 'success' ? (
         <div className="mt-6">
-          <FormMessage notice="התשלום נקלט. היחידות נכנסות תוך כדקה — רענן את הדף אם עוד לא." />
+          <FormMessage notice="התשלום נקלט. העמודים נכנסים תוך כדקה — רענן את הדף אם עוד לא." />
         </div>
       ) : null}
       {status === 'failure' ? (
@@ -66,8 +66,8 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
               <span className="num">{priceDigits(pack)}</span> ₪
             </p>
             <p className="text-small text-ink-body mt-1">
-              <span className="num">{pack.uploads}</span> העלאות ·{' '}
-              <span className="num">{perUploadDigits(pack)}</span> ₪ לחומר
+              <span className="num">{pack.pages}</span> עמודים ·{' '}
+              <span className="num">{perPageDigits(pack)}</span> אגורות לעמוד
             </p>
 
             {canPay ? <CheckoutForm pack={pack} /> : null}
@@ -76,7 +76,7 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
       </div>
 
       <p className="text-meta text-ink-faint mt-4">
-        היחידות לא פגות ולא מתאפסות בסוף החודש. אין מנוי ואין חיוב חוזר — משלמים פעם אחת,
+        העמודים לא פגים ולא מתאפסים בסוף החודש. אין מנוי ואין חיוב חוזר — משלמים פעם אחת,
         וזהו.
       </p>
 
@@ -88,7 +88,7 @@ export default async function PremiumPage(props: PageProps<'/premium'>) {
         <div className="bg-surface-sunk mt-6 rounded-lg px-5 py-5">
           <p className="text-small text-ink-body">
             התשלום באתר עוד לא פתוח, ובינתיים הרכישה נעשית בשיחה: כותבים לי, מעבירים
-            תשלום, ומקבלים קוד שמוסיף את היחידות.
+            תשלום, ומקבלים קוד שמוסיף את העמודים.
           </p>
 
           {contact ? (

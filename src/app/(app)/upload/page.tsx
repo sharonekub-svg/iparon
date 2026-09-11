@@ -23,7 +23,7 @@ export default async function UploadPage() {
             href="/premium"
             className="bg-ink text-on-ink text-label tap rounded-lg px-6 py-3.5 text-center hover:opacity-90"
           >
-            להוסיף יחידות
+            להוסיף עמודים
           </Link>
           <Link
             href="/dashboard"
@@ -45,10 +45,10 @@ export default async function UploadPage() {
       <p className="text-meta text-ink-faint mt-2">
         {entitlements.freeUsed ? (
           <>
-            נשארו לך <span className="num">{entitlements.credits}</span> יחידות העלאה.
+            נשארו לך <span className="num">{entitlements.credits}</span> עמודים.
           </>
         ) : (
-          'ההעלאה הראשונה שלך — עלינו.'
+          'החומר הראשון שלך — עלינו, בכל גודל.'
         )}
       </p>
       <UploadForm />

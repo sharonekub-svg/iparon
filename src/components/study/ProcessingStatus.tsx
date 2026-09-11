@@ -25,6 +25,7 @@ const STAGES = [
 export function ProcessingStatus({ studySetId }: { studySetId: string }) {
   const router = useRouter();
   const [stage, setStage] = useState('queued');
+  const [chunk, setChunk] = useState({ index: 0, count: 1 });
   const [failed, setFailed] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
       if (!alive || !progress) return;
 
       setStage(progress.stage);
+      setChunk({ index: progress.chunkIndex, count: progress.chunkCount });
 
       if (progress.status === 'ready') {
         router.replace(`/sets/${studySetId}`);
@@ -108,7 +110,7 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
         </div>
 
         <p className="text-meta text-ink-faint mt-4">
-          הקבצים שהעלית שמורים. ניסיון חוזר לא מבזבז לך עוד העלאה.
+          הקבצים שהעלית שמורים, והעמודים הוחזרו ליתרה. ניסיון חוזר לא עולה לך שוב.
         </p>
       </div>
     );
@@ -122,6 +124,18 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
       <p className="text-small text-ink-body mt-3">
         אפשר לסגור את המסך — העיבוד ממשיך, והחומר יחכה לך ברשימה.
       </p>
+
+      {/*
+        חומר גדול מעובד במנות של 20 עמודים, וזה לוקח כמה דקות. בלי
+        השורה הזאת המסך נראה תקוע בדיוק כשהוא הכי עסוק.
+      */}
+      {chunk.count > 1 ? (
+        <p className="text-meta text-ink-faint mt-2">
+          חומר ארוך, אז הוא מעובד בחלקים — חלק{' '}
+          <span className="num">{Math.min(chunk.index + 1, chunk.count)}</span> מתוך{' '}
+          <span className="num">{chunk.count}</span>.
+        </p>
+      ) : null}
 
       <ol className="border-line-strong bg-surface shadow-card mt-8 flex flex-col rounded-2xl border px-5 py-2">
         {STAGES.map((item, i) => {

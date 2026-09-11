@@ -95,39 +95,34 @@ export async function checkCaps(c: SupabaseClient, userId: string): Promise<CapC
  * כתיבת התוצאה. הסדר חשוב: קודם נושאים, כי כל השאר מצביע אליהם.
  * שיוך לפי שם הנושא — המודל מחזיר את השם, לא מזהה.
  */
-export async function writeStudySet(
+/**
+ * כתיבת תוצאת מנה אחת.
+ *
+ * חומר גדול מעובד בכמה מנות, וכל מנה מחזירה סיכום משלה. המנה הראשונה
+ * כותבת, והבאות **מצטרפות**: נושא שכבר קיים לא נוצר שוב, וכרטיסיות
+ * ושאלות נדחפות לסוף. רק המנה האחרונה מסמנת את החומר כמוכן — אחרת
+ * התלמיד היה נכנס לחומר חצי מעובד וחושב שזה הכול.
+ */
+export async function writeStudySetChunk(
   c: SupabaseClient,
   studySetId: string,
   set: StudySet,
+  chunk: { first: boolean; last: boolean },
 ): Promise<void> {
-  const { data: topicRows } = await c
-    .from('topics')
-    .insert(
-      set.topics.map((name, i) => ({ study_set_id: studySetId, name, order_index: i })),
-    )
-    .select('id, name');
-
-  const topicId = new Map(
-    (topicRows ?? []).map((t) => [t.name as string, t.id as string]),
-  );
+  const topicId = await upsertTopics(c, studySetId, set.topics);
   const resolve = (name: string) => topicId.get(name.trim()) ?? null;
 
-  await c.from('summaries').insert({
-    study_set_id: studySetId,
-    body: summaryText(set.summary_sections),
-    sections: set.summary_sections,
-    key_points: set.key_points,
-    definitions: set.definitions,
-  });
+  await mergeSummary(c, studySetId, set, chunk.first);
 
   if (set.flashcards.length > 0) {
+    const offset = await nextOrderIndex(c, 'flashcards', studySetId);
     await c.from('flashcards').insert(
       set.flashcards.map((card, i) => ({
         study_set_id: studySetId,
         topic_id: resolve(card.topic),
         front: card.q,
         back: card.a,
-        order_index: i,
+        order_index: offset + i,
       })),
     );
   }
@@ -138,6 +133,7 @@ export async function writeStudySet(
   ];
 
   if (questions.length > 0) {
+    const offset = await nextOrderIndex(c, 'questions', studySetId);
     await c.from('questions').insert(
       questions.map((q) => ({
         study_set_id: studySetId,
@@ -147,32 +143,144 @@ export async function writeStudySet(
         options: q.options,
         correct_index: q.correct,
         explanation: q.explanation || null,
-        order_index: q.i,
+        order_index: offset + q.i,
       })),
     );
   }
 
-  await c
-    .from('study_sets')
-    .update({
-      status: 'ready',
-      stage: 'done',
-      subject: set.subject.slice(0, 60),
-      title: set.title.slice(0, 200),
-      error: null,
-    })
-    .eq('id', studySetId);
+  // הכותרת והמקצוע נקבעים לפי המנה הראשונה: היא בדרך כלל תחילת החומר,
+  // ושם הכותרת אמיתית. מנה 3 של פרק באמצע תיתן כותרת מטעה.
+  const fields: Record<string, unknown> = chunk.first
+    ? { subject: set.subject.slice(0, 60), title: set.title.slice(0, 200) }
+    : {};
+
+  if (chunk.last) {
+    fields.status = 'ready';
+    fields.stage = 'done';
+    fields.error = null;
+  }
+
+  if (Object.keys(fields).length > 0) {
+    await c.from('study_sets').update(fields).eq('id', studySetId);
+  }
 }
 
-/**
- * מחיקת קבצי המקור אחרי עיבוד מוצלח.
- *
- * אחרי שהחומר נכתב אין לקובץ שום שימוש — הסיכום, הכרטיסיות והשאלות
- * כבר במסד. שמירתו עולה מכסת אחסון, ומחזיקה חומר של קטינים בלי סיבה.
- *
- * **רק בהצלחה.** אחרי כישלון הקובץ נשאר, כדי שניסיון חוזר לא יחייב
- * העלאה מחדש ולא יבזבז מכסה נוספת.
- */
+/** מחזיר מזהה לכל נושא בחומר, ויוצר רק את מי שעוד לא קיים. */
+async function upsertTopics(
+  c: SupabaseClient,
+  studySetId: string,
+  names: string[],
+): Promise<Map<string, string>> {
+  const { data: existing } = await c
+    .from('topics')
+    .select('id, name, order_index')
+    .eq('study_set_id', studySetId);
+
+  const map = new Map<string, string>(
+    (existing ?? []).map((t) => [t.name as string, t.id as string]),
+  );
+
+  const missing = names.map((n) => n.trim()).filter((n) => n && !map.has(n));
+  if (missing.length === 0) return map;
+
+  const offset = (existing ?? []).reduce(
+    (max, t) => Math.max(max, ((t.order_index as number) ?? -1) + 1),
+    0,
+  );
+
+  const { data: inserted } = await c
+    .from('topics')
+    .insert(
+      missing.map((name, i) => ({
+        study_set_id: studySetId,
+        name,
+        order_index: offset + i,
+      })),
+    )
+    .select('id, name');
+
+  for (const row of inserted ?? []) {
+    map.set(row.name as string, row.id as string);
+  }
+
+  return map;
+}
+
+/** הסיכום הוא שורה אחת לחומר, ולכן מנה שנייה מאריכה אותה ולא כותבת שנייה. */
+async function mergeSummary(
+  c: SupabaseClient,
+  studySetId: string,
+  set: StudySet,
+  first: boolean,
+): Promise<void> {
+  if (first) {
+    await c.from('summaries').insert({
+      study_set_id: studySetId,
+      body: summaryText(set.summary_sections),
+      sections: set.summary_sections,
+      key_points: set.key_points,
+      definitions: set.definitions,
+    });
+    return;
+  }
+
+  const { data: current } = await c
+    .from('summaries')
+    .select('body, sections, key_points, definitions')
+    .eq('study_set_id', studySetId)
+    .maybeSingle();
+
+  if (!current) {
+    // המנה הראשונה נכשלה בכתיבה. עדיף סיכום חלקי מאשר חומר בלי סיכום.
+    await c.from('summaries').insert({
+      study_set_id: studySetId,
+      body: summaryText(set.summary_sections),
+      sections: set.summary_sections,
+      key_points: set.key_points,
+      definitions: set.definitions,
+    });
+    return;
+  }
+
+  const sections = [
+    ...((current.sections as unknown[]) ?? []),
+    ...set.summary_sections,
+  ];
+
+  await c
+    .from('summaries')
+    .update({
+      body: `${current.body as string}\n\n${summaryText(set.summary_sections)}`,
+      sections,
+      key_points: [
+        ...((current.key_points as unknown[]) ?? []),
+        ...set.key_points,
+      ],
+      definitions: [
+        ...((current.definitions as unknown[]) ?? []),
+        ...set.definitions,
+      ],
+    })
+    .eq('study_set_id', studySetId);
+}
+
+/** המיקום הפנוי הבא, כדי שמנה שנייה לא תדרוס את הסדר של הראשונה. */
+async function nextOrderIndex(
+  c: SupabaseClient,
+  table: 'flashcards' | 'questions',
+  studySetId: string,
+): Promise<number> {
+  const { data } = await c
+    .from(table)
+    .select('order_index')
+    .eq('study_set_id', studySetId)
+    .order('order_index', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return ((data?.order_index as number) ?? -1) + 1;
+}
+
 export async function purgeSourceFiles(
   c: SupabaseClient,
   studySetId: string,

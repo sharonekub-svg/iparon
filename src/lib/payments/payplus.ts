@@ -86,7 +86,7 @@ export async function createCheckoutUrl(
     more_info: `${req.userId}|${req.pack.slug}`,
     items: [
       {
-        name: `חבילה: ${req.pack.title} — ${req.pack.uploads} העלאות`,
+        name: `חבילה: ${req.pack.title} — ${req.pack.pages} עמודים`,
         quantity: 1,
         price: req.pack.priceAgorot / 100,
       },

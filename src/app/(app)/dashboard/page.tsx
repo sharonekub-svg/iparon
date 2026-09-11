@@ -33,7 +33,7 @@ export default async function DashboardPage() {
         <Link href="/premium" className="text-meta text-ink-faint hover:text-ink">
           {entitlements.freeUsed ? (
             <>
-              <span className="num">{entitlements.credits}</span> יחידות
+              <span className="num">{entitlements.credits}</span> עמודים
             </>
           ) : (
             'החבילות'

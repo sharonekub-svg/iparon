@@ -163,15 +163,38 @@ export async function startProcessing(
 }
 
 /** מסך העיבוד שואל את זה כל כמה שניות. */
-export async function getProgress(
-  studySetId: string,
-): Promise<{ status: string; stage: string; error: string | null } | null> {
+export type Progress = {
+  status: string;
+  stage: string;
+  error: string | null;
+  /** מנת העיבוד הנוכחית ומספר המנות. חומר גדול מעובד בכמה מנות. */
+  chunkIndex: number;
+  chunkCount: number;
+};
+
+export async function getProgress(studySetId: string): Promise<Progress | null> {
   const supabase = await createServerSupabase();
   const { data } = await supabase
     .from('study_sets')
-    .select('status, stage, error')
+    .select('status, stage, error, chunk_index, chunk_count')
     .eq('id', studySetId)
     .maybeSingle();
 
-  return data as { status: string; stage: string; error: string | null } | null;
+  if (!data) return null;
+
+  const row = data as {
+    status: string;
+    stage: string;
+    error: string | null;
+    chunk_index: number;
+    chunk_count: number;
+  };
+
+  return {
+    status: row.status,
+    stage: row.stage,
+    error: row.error,
+    chunkIndex: row.chunk_index ?? 0,
+    chunkCount: row.chunk_count ?? 1,
+  };
 }
