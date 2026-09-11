@@ -269,15 +269,36 @@ export type Progress = {
   /** מנת העיבוד הנוכחית ומספר המנות. חומר גדול מעובד בכמה מנות. */
   chunkIndex: number;
   chunkCount: number;
+  /** אין עובד שמחזיק את החומר — צריך להעיר אותו מחדש. */
+  stalled: boolean;
 };
 
-export async function getProgress(studySetId: string): Promise<Progress | null> {
+/**
+ * מצב העיבוד.
+ *
+ * `deep` מפעיל את שתי הבדיקות היקרות — האם העבודה מתה והאם היא נעצרה
+ * בלי עובד. הן כוללות כתיבה, ולכן הן **לא** רצות בכל סקר: מסך שפתוח
+ * שעות עם סקר כל 2.5 שניות הפך אותן לכתיבה מתמדת שהחניקה את המסד.
+ */
+export async function getProgress(
+  studySetId: string,
+  deep = false,
+): Promise<Progress | null> {
   const supabase = await createServerSupabase();
 
-  // העובד יכול למות באמצע: Supabase הורגת Edge Function אחרי ~150
-  // שניות. בלי הבדיקה הזאת התלמיד נשאר מול מסך "מנתח את החומר" לנצח,
-  // והעמודים שנגבו ממנו לא חוזרים. מי שממתין הוא גם מי שמגלה.
-  await supabase.rpc('fail_stuck_study_set', { p_study_set_id: studySetId });
+  let stalled = false;
+
+  if (deep) {
+    // העובד יכול למות באמצע: Supabase הורגת Edge Function אחרי ~150
+    // שניות. בלי הבדיקה הזאת התלמיד נשאר מול מסך שלא יזוז, והעמודים
+    // שנגבו ממנו לא חוזרים.
+    await supabase.rpc('fail_stuck_study_set', { p_study_set_id: studySetId });
+
+    const { data } = await supabase.rpc('is_study_set_stalled', {
+      p_study_set_id: studySetId,
+    });
+    stalled = data === true;
+  }
 
   const { data } = await supabase
     .from('study_sets')
@@ -301,5 +322,6 @@ export async function getProgress(studySetId: string): Promise<Progress | null> 
     error: row.error,
     chunkIndex: row.chunk_index ?? 0,
     chunkCount: row.chunk_count ?? 1,
+    stalled,
   };
 }

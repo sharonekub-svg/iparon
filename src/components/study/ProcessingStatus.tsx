@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { retryProcessing } from '@/app/(app)/sets/[id]/actions';
-import { getProgress } from '@/app/(app)/upload/actions';
+import { getProgress, startProcessing } from '@/app/(app)/upload/actions';
 import { IconMark } from '@/components/ui/IconMark';
 
 /**
@@ -32,13 +32,26 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
 
   useEffect(() => {
     let alive = true;
+    let ticks = 0;
 
     async function poll() {
-      const progress = await getProgress(studySetId);
+      ticks += 1;
+
+      // הבדיקות היקרות (האם העבודה מתה, האם היא נעצרה) כוללות כתיבה,
+      // ולכן הן רצות אחת ל-12 סקרים ולא בכל אחד. מסך שנשאר פתוח שעות
+      // עם כתיבה כל 2.5 שניות הוא מה שהחניק את המסד.
+      const progress = await getProgress(studySetId, ticks % 12 === 0);
       if (!alive || !progress) return;
 
       setStage(progress.stage);
       setChunk({ index: progress.chunkIndex, count: progress.chunkCount });
+
+      // אין עובד שמחזיק את החומר — המנה הבאה מעולם לא הופעלה. הדפדפן
+      // שממילא ממתין כאן הוא מי שמעיר אותה. שרשרת ההפעלות בצד השרת
+      // שבירה מדי: ה-isolate נהרג לפני שהבקשה הבאה יצאה.
+      if (progress.stalled) {
+        await startProcessing(studySetId);
+      }
 
       if (progress.status === 'ready') {
         router.replace(`/sets/${studySetId}`);
@@ -49,7 +62,9 @@ export function ProcessingStatus({ studySetId }: { studySetId: string }) {
         return;
       }
 
-      timer = setTimeout(poll, 2500);
+      // האטה הדרגתית: הדקה הראשונה צפופה, ואחריה הסקר מתרחק. חומר
+      // גדול לוקח דקות, ואין סיבה לשאול עליו 1,400 פעם בשעה.
+      timer = setTimeout(poll, ticks < 24 ? 2500 : 8000);
     }
 
     let timer = setTimeout(poll, 400);
