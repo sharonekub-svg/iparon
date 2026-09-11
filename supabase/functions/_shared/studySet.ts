@@ -5,10 +5,15 @@
  * המבנה בזמן הדגימה, ו-parseStudySet בודקת את התוכן עצמו לפני שמירה.
  * מערך ריק, מחרוזת ריקה או correct מחוץ לטווח לא מגיעים לתלמיד.
  *
- * ⚠️ **בלי minItems/maxItems.** structured outputs לא תומך בהם, וה-API
- * מחזיר 400 על `For 'array' type, property 'maxItems' is not supported`.
- * הכמויות נאמרות למודל בפרומפט (`budgets()` ב-model.ts), והתקרה נאכפת
- * בקוד ב-`trimToBudgets` — כלומר בגבול אחד פחות, אבל לא בלי גבול.
+ * ⚠️ **בלי אילוצי ערך.** structured outputs מקבל רק מבנה — type,
+ * properties, required, items, additionalProperties, description.
+ * `minItems`/`maxItems` על מערך ו-`minimum`/`maximum` על מספר מוחזרים
+ * ב-400, והבקשה כולה נדחית לפני שהמודל קרא עמוד. שתי השגיאות האלה
+ * עלו בייצור, אחת אחרי השנייה.
+ *
+ * במקומם: הכמויות נאמרות למודל בפרומפט (`budgets()` ב-model.ts),
+ * התקרה נחתכת ב-`trimToBudgets`, והערכים נבדקים ב-parseStudySet —
+ * `correct` מחוץ לטווח נדחה שם, לא בסכימה.
  */
 
 export const studySetSchema = {
@@ -91,7 +96,7 @@ function questionSchema() {
     properties: {
       q: { type: 'string' },
       options: { type: 'array', items: { type: 'string' } },
-      correct: { type: 'integer', minimum: 0, maximum: 3 },
+      correct: { type: 'integer', description: 'מיקום התשובה הנכונה: 0, 1, 2 או 3' },
       explanation: { type: 'string' },
       topic: { type: 'string' },
     },
