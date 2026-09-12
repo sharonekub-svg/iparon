@@ -2,7 +2,12 @@ import Anthropic from 'npm:@anthropic-ai/sdk@0.115.0';
 
 import { env } from './env.ts';
 import { UserError } from './errors.ts';
-import { parseStudySet, studySetSchema, type StudySet } from './studySet.ts';
+import {
+  parseStudySet,
+  StudySetError,
+  studySetSchema,
+  type StudySet,
+} from './studySet.ts';
 
 /**
  * כלל ברזל 4: בלי OCR ובלי חילוץ טקסט מ-PDF.
@@ -270,8 +275,14 @@ export async function analyze(
     cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
   };
 
-  return {
-    studySet: trimToBudgets(parseStudySet(JSON.parse(text)), pages),
-    usage: { ...raw, costUsd: estimateCost(model, raw) },
-  };
+  const usage = { ...raw, costUsd: estimateCost(model, raw) };
+
+  try {
+    return { studySet: trimToBudgets(parseStudySet(JSON.parse(text)), pages), usage };
+  } catch (error) {
+    // הכשל קרה אחרי שהמודל כבר עבד. בלי הצמדת הצריכה לשגיאה הקריאה
+    // נרשמת עם אפס טוקנים, והתקרה החודשית מפסיקה לשקף את ההוצאה.
+    if (error instanceof StudySetError) error.usage = usage;
+    throw error;
+  }
 }

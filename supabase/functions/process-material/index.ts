@@ -213,11 +213,13 @@ async function process(
     const message = error instanceof Error ? error.message : 'שגיאה לא מזוהה';
     console.error('[process-material]', studySetId, message);
 
-    // גם כשל נרשם: קריאה שנפלה אחרי שהמודל כבר עבד עלתה כסף.
+    // גם כשל נרשם: קריאה שנפלה אחרי שהמודל כבר עבד עלתה כסף, ולכן
+    // הצריכה נרשמת איתה כשהיא ידועה.
     await recordCall(c, {
       userId,
       studySetId,
       model: env.model,
+      usage: error instanceof StudySetError ? (error.usage as never) : undefined,
       ok: false,
       error: message.slice(0, 500),
     });
