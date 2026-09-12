@@ -30,6 +30,15 @@ export const env = {
   get model() {
     return Deno.env.get('LAMDAI_MODEL') ?? 'claude-opus-5';
   },
+  /**
+   * עמודים למנה. ניתן לכוונון בלי פריסה מחדש:
+   *   npx supabase secrets set LAMDAI_PAGES_PER_CHUNK=4
+   * זה הבורג היחיד שבאמת עוצר קריסה בזמן אמת, ולכן הוא לא קבוע בקוד.
+   */
+  get pagesPerChunk() {
+    const raw = Number(Deno.env.get('LAMDAI_PAGES_PER_CHUNK'));
+    return Number.isInteger(raw) && raw >= 1 && raw <= 20 ? raw : 5;
+  },
 };
 
 /** מגבלות הקלט. מתועדות ב-docs/PLAN.md סעיף 7. */
@@ -50,8 +59,14 @@ export const limits = {
    * העלות מושכת לכיוון ההפוך (הפלט כמעט קבוע לכל קריאה, ולכן מנה
    * נוספת עולה כמעט כמו מלאה), אבל מנה שלא מסתיימת עולה את מלוא
    * המחיר ולא מחזירה כלום. הזמן מנצח.
+   *
+   * **נמדד:** 5 עמודים ב-Opus 5 עם effort בינוני לוקחים ~103 שניות.
+   * 6 עמודים כבר מסוכנים. הערך נקרא מ-`env.pagesPerChunk` כדי שאפשר
+   * יהיה להוריד אותו בלי פריסה מחדש כשקריאה מתחילה לחרוג.
    */
-  maxPagesPerChunk: 6,
+  get maxPagesPerChunk() {
+    return env.pagesPerChunk;
+  },
   /** גבול עליון לחומר אחד. מעליו מבקשים מהתלמיד לפצל בעצמו. */
   maxPages: 120,
 } as const;
