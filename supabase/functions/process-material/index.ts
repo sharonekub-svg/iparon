@@ -152,24 +152,30 @@ async function process(
     // חלוקה שווה: 26 עמודים הם שתי מנות של 13, ולא מנה של 25 ומנה של 1.
     const perChunk = Math.ceil(pages.length / chunkCount);
 
+    // הגבייה היא על מספר העמודים האמיתי, אחרי הספירה ולפני הקריאה
+    // למודל. יתרה שאינה מספיקה עוצרת כאן, בלי לעלות כסף.
+    //
+    // **בכל מנה, לא רק בראשונה.** consume_pages יוצאת מיד כשכבר
+    // נגבה, ולכן הקריאה החוזרת היא no-op — חוץ ממקרה אחד: עיבוד
+    // שנכשל באמצע, הוחזר, ואז חודש. שם pages_charged התאפס והחידוש
+    // התחיל ממנה 2, כלומר החומר הושלם בחינם. זה בדיוק מה שקרה
+    // בייצור.
+    const { error: chargeError } = await c.rpc('consume_pages', {
+      p_study_set_id: studySetId,
+      p_pages: pages.length,
+    });
+
+    if (chargeError) {
+      // חיוב מינימלי של 5 עמודים — מתועד ב-docs/PLAN.md סעיף 7א.
+      const charged = Math.max(pages.length, 5);
+      throw new UserError(
+        chargeError.message.includes('מספיק')
+          ? `לחומר הזה צריך ${charged} עמודים, ואין לך מספיק ביתרה.`
+          : 'לא הצלחנו לחייב את היתרה. נסה שוב.',
+      );
+    }
+
     if (chunkIndex === 0) {
-      // הגבייה היא על מספר העמודים האמיתי, אחרי הספירה ולפני הקריאה
-      // הראשונה למודל. יתרה שאינה מספיקה עוצרת כאן, בלי לעלות כסף.
-      const { error: chargeError } = await c.rpc('consume_pages', {
-        p_study_set_id: studySetId,
-        p_pages: pages.length,
-      });
-
-      if (chargeError) {
-        // חיוב מינימלי של 5 עמודים — מתועד ב-docs/PLAN.md סעיף 7א.
-        const charged = Math.max(pages.length, 5);
-        throw new UserError(
-          chargeError.message.includes('מספיק')
-            ? `לחומר הזה צריך ${charged} עמודים, ואין לך מספיק ביתרה.`
-            : 'לא הצלחנו לחייב את היתרה. נסה שוב.',
-        );
-      }
-
       await c
         .from('study_sets')
         .update({ page_count: pages.length, chunk_count: chunkCount })
