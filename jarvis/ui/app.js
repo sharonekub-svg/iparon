@@ -1,6 +1,12 @@
 import { Graph, typeColor } from './graph.js';
 
 /* ── כוונון: הסף שכדאי לשחק איתו ─────────────────────────────────── */
+// 'press'      — לחיצה אחת = הקלטה אחת. המיקרופון נכבה מיד אחריה. (ברירת מחדל)
+// 'continuous' — לוחצים פעם אחת וממשיכים לדבר, תור אחרי תור, עד לחיצה נוספת.
+// ברירת המחדל היא 'press' בכוונה: מיקרופון שנשאר פתוח אחרי שסיימת לדבר
+// קולט שיחות ברקע, וזה לא מה שמישהו מצפה לו.
+const MIC_MODE        = localStorage.getItem('jarvis.micMode') || 'press';
+
 const SILENCE_MS      = 900;   // כמה שקט מסיים תור. זה המספר לכוונן.
 const SILENCE_LEVEL   = 0.045; // מתחת לזה נחשב שקט (0..1)
 const MIN_SPEECH_MS   = 350;   // קצר מזה — לא שולחים בכלל
@@ -294,7 +300,7 @@ async function speak(text) {
       URL.revokeObjectURL(audio.src);
       S.speaking = false;
       S.audio = null;
-      if (wasListening && S.listening) resumeListening();
+      if (MIC_MODE !== 'press' && wasListening && S.listening) resumeListening();
       else setReactor(S.listening ? 'listening' : 'idle');
     };
     audio.onended = done;
@@ -369,12 +375,18 @@ function beginTurn() {
     const spoke = performance.now() - S.turnStart;
     clearLive();
     if (spoke < MIN_SPEECH_MS || !chunks.length) {
-      if (S.listening) beginTurn();
+      if (MIC_MODE === 'press') {
+        stopListening();
+        shout('לא שמעתי כלום', 'ההקלטה הייתה קצרה מדי. לחץ שוב ודבר.');
+      } else if (S.listening) {
+        beginTurn();
+      }
       return;
     }
     const blob = new Blob(chunks, { type: mime });
+    if (MIC_MODE === 'press') stopListening();   // כיבוי לפני השליחה, לא אחריה
     await transcribeAndSend(blob, mime);
-    if (S.listening && !S.speaking) beginTurn();
+    if (MIC_MODE !== 'press' && S.listening && !S.speaking) beginTurn();
   };
   rec.start();
 }
@@ -465,7 +477,7 @@ function stopListening() {
 /* קטיעה מפורשת — כפתור המיקרופון, רווח, או Esc */
 function bargeIn() {
   stopSpeaking();
-  if (S.listening) resumeListening();
+  if (MIC_MODE !== 'press' && S.listening) resumeListening();
   else setReactor('idle');
 }
 
@@ -645,6 +657,29 @@ async function boot() {
     $('#mute').classList.toggle('on', S.muted);
     $('#mute').textContent = S.muted ? 'מושתק' : 'קול';
     if (S.muted) stopSpeaking();
+  };
+
+  // מצב המיקרופון — גלוי, ונשמר בין הפעלות
+  const paintMicMode = () => {
+    const press = MIC_MODE === 'press';
+    $('#micmode').textContent = press ? 'מיקרופון: לחיצה' : 'מיקרופון: רצוף';
+    $('#micmode').classList.toggle('on', !press);
+    $('#mic').title = press
+      ? 'לחץ כדי להקליט. נכבה לבד בסוף המשפט.'
+      : 'לחץ פעם אחת ודבר. נשאר פתוח עד לחיצה נוספת.';
+  };
+  paintMicMode();
+  $('#micmode').onclick = () => {
+    const next = MIC_MODE === 'press' ? 'continuous' : 'press';
+    localStorage.setItem('jarvis.micMode', next);
+    if (next === 'continuous' &&
+        !confirm('במצב רצוף המיקרופון נשאר פתוח אחרי שסיימת לדבר, ' +
+                 'וקולט גם שיחות ברקע עד שתלחץ שוב.\n\nלהמשיך?')) {
+      localStorage.setItem('jarvis.micMode', 'press');
+      return;
+    }
+    stopListening();
+    location.reload();
   };
 
   $('#brief').onclick = () => runTool('brief_me', {});
