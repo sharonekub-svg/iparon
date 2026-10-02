@@ -1,5 +1,0 @@
-.env
-.state/
-memory/*.md
-__pycache__/
-*.pyc
